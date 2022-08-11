@@ -98,7 +98,7 @@ The header syntax to retrieve the returned data type is **#Content-Type**
 - Content-Type is header attribute to extract the value from.
 
 ## Variables
-When working with variables, all variables must be defined as @\<***name**\> as the @ indicates to the connector that this definition is a variable meaning these values are available to the defined steps. Global variables are available to all steps while response variables are available to all subsequent steps.
+When working with variables, all variables must be defined as @<***name***> as the @ indicates to the connector that this definition is a variable meaning these values are available to the defined steps. Global variables are available to all steps while response variables are available to all subsequent steps.
 
 When working with Basic mode authentication, **@User** and **@Password** variables should be added and the **Authorization=Basic** value must be included in the attribute header for each step. The connector will detect the ‘Basic’ mode and perform the required Base64 encoding of ‘@User:@Password’ string and add it to the header attribute.
 
@@ -123,7 +123,7 @@ Variable | Description
 **@CertStorePwd**    | Is used to define the password of the keystore. Encrypted global properties can be used.
 **@CertStoreType**   | Is used to define the format of the client key in the keystore. Currently PKCS12 is the only supported format.
 **@JCorrelationid**	 | Is used to create the unique id of a job in the daily tables that can be used during call back procedures.
-**@I_\<name\>**	     | is used to indicate to the connector that the variable is an integer value.
+**@I_name**	         | is used to indicate to the connector that the variable is an integer value.
 
 ### @JCorrelationid
 If there is a requirement to start a process in a web server and then allow the web server to return a completion indication, the **@JCorrellationid** value can be used. The value corresponds to the next job in the processing sequence. The job itself should have a Threshold dependency that is never triggered. The reason that the job should be held on a dependency instead of an ‘On Hold’ condition, is that any monitoring to determine if the job is ‘Late to Start’ will not valid if the job is in an ‘On Hold’ condition. The web server should respond with a /api/jobactions request using the unique jobid and setting the job status to either ‘markFinishedOk’ or ‘markFailed’ depending on the result processing in the web server.
@@ -132,7 +132,7 @@ The value of the @JCorrellationid ‘[[SCHEDULE DATE-YYYY-MM-DD]].[[$SCHEDULE NA
 
 During the connector processing, the connector will connect to the host OpCon system using the OpCon-API and retrieve the unique job id. This value can then be passed as part of the JSON payload when starting the process on the web server.
 
-## @I_\<name\> Integer Variables
+## @I_***name*** Integer Variables
 The @I_ indicates that the defined variable contains an integer value. When using properties and variables within the JSON payload, the names are defined within the JSON payload as string values. When the value is substituted even if the value is an integer value it will be inserted into the JSON payload as a string value due to the place holder being a string value (i.e. “fixno” : “[[version]]” will result in “fixno” : “122”). When this is defined as an @I_ variable, the value will be inserted into the JSON payload as an integer value (i.e. “fixno” : “@I_version” will result in “fixno” : 122). 
 To implement this:
 - Create a global variable @I_verion with a value of [[version]].
@@ -146,7 +146,7 @@ Example:
 grant_type=client_credentials&client_id=@Clientid&client_secret=@Key&resource=https://management.azure.com/
 ```
 ## Templates
-Templates can be used to import task definitions when creating the tasks. The templates can be used either for Windows or Linux tasks. Templates for job definitions can be found in the SMA Technologies Innovation Lab on GitHub. Projects have been assigned names associating themselves with templates (i.e. \<***name***\>-webservicestemplate).
+Templates can be used to import task definitions when creating the tasks. The templates can be used either for Windows or Linux tasks. Templates for job definitions can be found in the SMA Technologies Innovation Lab on GitHub. Projects have been assigned names associating themselves with templates (i.e. ***name***-webservicestemplate).
 
 ## Proxy Servers
 The connector supports the use of proxy servers. When requiring a proxy server, it is possible to configure this in two possible ways. If a proxy server definition exists in both the configuration and the Step definition, the value in the Step definition will be used.
@@ -175,7 +175,7 @@ This approach allows a proxy server to be associated with a specific step within
 ## Client Certificates
 When using client certificates, the certificate needs to be inserted into a keystore that is then associated with the connector. The suggestion is to create a store directory off the connector root installation directory and create a unique keystore for each certificate.
 
-When creating the keystore, download the client key \<***keyname***\>.p12 and use the Java program keytools (location in the \java\bin directory) to create the keystore. When you receive a client key, you will also receive a password that will allow you to execute a request on the received key. To create the keystore for a received client key test_client.p12 enter the following:
+When creating the keystore, download the client key ***keyname***.p12 and use the Java program keytools (location in the \java\bin directory) to create the keystore. When you receive a client key, you will also receive a password that will allow you to execute a request on the received key. To create the keystore for a received client key test_client.p12 enter the following:
 
 ```
 keytool -importkeystore -srckeystore c:\wsconnector\store\test-client.p12 -destkeystore c:\wsconnector\store\test.pkcs12 -srcstoretype pkcs12
