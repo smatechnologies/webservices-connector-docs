@@ -123,10 +123,10 @@ If not restart Enterprise Manager using 'Run as Administrator'. After this Enter
 Within OpCon create a global property that points to the root installation directory of the connector. 
 - Windows installation 
   - name is WS_PATH
-  - value is \<***root installation directory***\>
+  - value is ***root installation directory***
 - Linux installation
   - name is WS_UNIX_PATH
-  - value is \<***root installation directory***\>
+  - value is ***root installation directory***
 - Docker installation
   - name is WS_UNIX_PATH
   - value is /app
@@ -139,9 +139,9 @@ When defining the value for the Containerized Webservices implementation, the so
 ### Connector.config File
 The Connector.config file is in the following locations
 - Windows
-  - \\\<***root installation directory***\>\\config directory
+  - \\***root installation directory***\\config directory
 - Linux
-  - /\<***root installation directory***\>/config directory
+  - /***root installation directory***/config directory
 - Docker
   - /app/config directory
 
@@ -154,7 +154,7 @@ Property Name | Value
 **USES_PROXY**               | Indicates if the Connector uses a proxy server. Values are True or False, default is False.
 **DEBUG**                    | Turns debug value on or off. Should be set when defining steps as this will dump all the data which can be analyzed to determine the location of attribute values to extract.Values are True or False, default is False.
 **[PROXY]**                  | header - required if **USES_PROXY** is set to True.
-**URL**                      | The full proxy server URL (i.e. http://\<***proxy server***\>:\<***port***\>).
+**URL**                      | The full proxy server URL (i.e. http://***proxy server***:***port***).
 **[OPCON_API]**              | header - required and defines the connection to the OpCon-API
 **SERVER**                   | The address of the host OpCon server is inserted into the Connector.config file by using the -–setup switch when executing the connector. 
 **USETLS**                   | Indicates if the OpCon Rest API server is supporting TLS and inserted into the Connector.config file by using the -–setup switch when executing the connector. 
