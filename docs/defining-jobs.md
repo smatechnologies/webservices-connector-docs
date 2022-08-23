@@ -102,8 +102,8 @@ Header attributes are provided by using the **Header** tab and entering the head
 
 Attribute Name | Attribute Value
 -------------- | -----------
-\<***name***\>  | \<***value***\>
-\<***name***\>  | @variable
+***name***     | ***value***
+***name***     | @variable
 
 ##### Basic Authentication
 When using Basic Authentication is required, a header Attribute Name of **Authorization** and a Attribute Value of **Basic** must be defined. The connector detects this and uses the @User and @Password variable values to generate the required credentials by performing a Base64 encoding of the ‘@User:@Password’ string and insert this it to the value of the header attribute.

@@ -1,4 +1,4 @@
-# Release Notes ServiceNow 21.1.1
+# Release Notes Webservices 21.1.2
 
 ## General
 
@@ -17,6 +17,8 @@ To use Azure Storage Connector see the Azure Storage Connector documentation.
 
 ### Fixes
 
+**CONNUTIL-577**    
+					Variable values not updated correctly if the message body is read from an input file.   
 				
 
 
