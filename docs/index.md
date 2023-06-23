@@ -7,7 +7,7 @@ sidebar_label: 'Webservices Connector'
 
 The Webservices Connector is a REST-API connector that supports a multi-step capability. Each step is a separate request to a web server using the GET, POST, PUT or DELETE functions. Steps are executed in sequence with the possibility of extracting data from the returned payload and passing this to subsequent steps.
 
-![Webservices Component Overview](/img/webservices-component-overview.png)
+![Webservices Component Overview](../static/img/webservices-component-overview.png)
 
 The connector supports application/json, application/xml, application/x-www-form-urlencoded, multipart/form-data, text/xml and text/plain Content-Types. However, only application/json and application/xml Content-Types support attribute value extraction using the JSONPath capabilities for JSON data and XPath capabilities for XML data.
 
@@ -21,7 +21,7 @@ Attribute values can be extracted from returned data and passed to subsequent st
 
 A Docker image containing the Webservices Connector within a Linux environment is available from Docker Hub.
 
-![Webservices Docker Image Overview](/img/webservices-docker-image-overview.png)
+![Webservices Docker Image Overview](../static/img/webservices-docker-image-overview.png)
 
 The connector includes a job sub-type (Web Services) that can be used to define the jobs. 
 
