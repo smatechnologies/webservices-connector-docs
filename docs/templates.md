@@ -334,6 +334,251 @@ This section contains various job templates that can be used when working with t
   "properties" : [ ]
 }
 ``` 
+## WebServices VisualCron Embedded Script Definitions
+The following definition contains the Embedded Script WebServices-vcon-vars 
+```
+{
+  "templateid" : null,
+  "steps" : [ {
+    "function" : "GET",
+    "url" : "http://@Url/VisualCron/json/logon?username=@User&password=@Password&expire=3600",
+    "proxyServer" : null,
+    "request" : {
+      "headers" : [ ],
+      "contentType" : "application/json",
+      "body" : null,
+      "fileName" : null
+    },
+    "response" : {
+      "contentType" : "application/json",
+      "variables" : [ {
+        "name" : "@Token",
+        "value" : "$.Token"
+      } ],
+      "ignoreResult" : false,
+      "stepCompletionCode" : 200,
+      "responseDataCheck" : null,
+      "fileName" : null
+    }
+  }, {
+    "function" : "GET",
+    "url" : "http://@Url/VisualCron/json/Job/GetByName?token=@Token&name=@Jobname",
+    "proxyServer" : null,
+    "request" : {
+      "headers" : [ ],
+      "contentType" : "application/json",
+      "body" : null,
+      "fileName" : null
+    },
+    "response" : {
+      "contentType" : "application/json",
+      "variables" : [ {
+        "name" : "@Jobid",
+        "value" : "$.Id"
+      } ],
+      "ignoreResult" : false,
+      "stepCompletionCode" : 200,
+      "responseDataCheck" : null,
+      "fileName" : null
+    }
+  }, {
+    "function" : "GET",
+    "url" : "http://@Url/VisualCron/json/Job/Run?token=@Token&id=@Jobid&variables=@Variables",
+    "proxyServer" : null,
+    "request" : {
+      "headers" : [ ],
+      "contentType" : "application/json",
+      "body" : null,
+      "fileName" : null
+    },
+    "response" : {
+      "contentType" : "application/json",
+      "variables" : [ ],
+      "ignoreResult" : false,
+      "stepCompletionCode" : 200,
+      "responseDataCheck" : null,
+      "fileName" : null
+    }
+  }, {
+    "function" : "GET",
+    "url" : "http://@Url/VisualCron/json/Job/Get?token=@Token&id=@Jobid",
+    "proxyServer" : null,
+    "request" : {
+      "headers" : [ ],
+      "contentType" : "application/json",
+      "body" : null,
+      "fileName" : null
+    },
+    "response" : {
+      "contentType" : "application/json",
+      "variables" : [ ],
+      "ignoreResult" : false,
+      "stepCompletionCode" : 200,
+      "responseDataCheck" : {
+        "goodFin" : "1",
+        "badFin" : "2",
+        "attributeToCheck" : "$.Stats.Status",
+        "poll" : true,
+        "pollDelay" : 3,
+        "pollInterval" : 2,
+        "pollMaxTime" : null
+      },
+      "fileName" : null
+    }
+  }, {
+    "function" : "GET",
+    "url" : "http://@Url/VisualCron/json/Job/Get?token=@Token&id=@Jobid",
+    "proxyServer" : null,
+    "request" : {
+      "headers" : [ ],
+      "contentType" : "application/json",
+      "body" : null,
+      "fileName" : null
+    },
+    "response" : {
+      "contentType" : "application/json",
+      "variables" : [ ],
+      "ignoreResult" : false,
+      "stepCompletionCode" : 200,
+      "responseDataCheck" : {
+        "goodFin" : "0",
+        "badFin" : null,
+        "attributeToCheck" : "$.Stats.ExitCode",
+        "poll" : false,
+        "pollDelay" : null,
+        "pollInterval" : null,
+        "pollMaxTime" : null
+      },
+      "fileName" : null
+    }
+  } ],
+  "variables" : [ ],
+  "environmentVariables" : [ ],
+  "properties" : [ ]
+}
+```
+The following definition contains the Embedded Script WebServices-vcon-no-vars 
+```
+{
+  "templateid" : null,
+  "steps" : [ {
+    "function" : "GET",
+    "url" : "http://@Url/VisualCron/json/logon?username=@User&password=@Password&expire=3600",
+    "proxyServer" : null,
+    "request" : {
+      "headers" : [ ],
+      "contentType" : "application/json",
+      "body" : null,
+      "fileName" : null
+    },
+    "response" : {
+      "contentType" : "application/json",
+      "variables" : [ {
+        "name" : "@Token",
+        "value" : "$.Token"
+      } ],
+      "ignoreResult" : false,
+      "stepCompletionCode" : 200,
+      "responseDataCheck" : null,
+      "fileName" : null
+    }
+  }, {
+    "function" : "GET",
+    "url" : "http://@Url/VisualCron/json/Job/GetByName?token=@Token&name=@Jobname",
+    "proxyServer" : null,
+    "request" : {
+      "headers" : [ ],
+      "contentType" : "application/json",
+      "body" : null,
+      "fileName" : null
+    },
+    "response" : {
+      "contentType" : "application/json",
+      "variables" : [ {
+        "name" : "@Jobid",
+        "value" : "$.Id"
+      } ],
+      "ignoreResult" : false,
+      "stepCompletionCode" : 200,
+      "responseDataCheck" : null,
+      "fileName" : null
+    }
+  }, {
+    "function" : "GET",
+    "url" : "http://@Url/VisualCron/json/Job/Run?token=@Token&id=@Jobid",
+    "proxyServer" : null,
+    "request" : {
+      "headers" : [ ],
+      "contentType" : "application/json",
+      "body" : null,
+      "fileName" : null
+    },
+    "response" : {
+      "contentType" : "application/json",
+      "variables" : [ ],
+      "ignoreResult" : false,
+      "stepCompletionCode" : 200,
+      "responseDataCheck" : null,
+      "fileName" : null
+    }
+  }, {
+    "function" : "GET",
+    "url" : "http://@Url/VisualCron/json/Job/Get?token=@Token&id=@Jobid",
+    "proxyServer" : null,
+    "request" : {
+      "headers" : [ ],
+      "contentType" : "application/json",
+      "body" : null,
+      "fileName" : null
+    },
+    "response" : {
+      "contentType" : "application/json",
+      "variables" : [ ],
+      "ignoreResult" : false,
+      "stepCompletionCode" : 200,
+      "responseDataCheck" : {
+        "goodFin" : "1",
+        "badFin" : "2",
+        "attributeToCheck" : "$.Stats.Status",
+        "poll" : true,
+        "pollDelay" : 3,
+        "pollInterval" : 2,
+        "pollMaxTime" : null
+      },
+      "fileName" : null
+    }
+  }, {
+    "function" : "GET",
+    "url" : "http://@Url/VisualCron/json/Job/Get?token=@Token&id=@Jobid",
+    "proxyServer" : null,
+    "request" : {
+      "headers" : [ ],
+      "contentType" : "application/json",
+      "body" : null,
+      "fileName" : null
+    },
+    "response" : {
+      "contentType" : "application/json",
+      "variables" : [ ],
+      "ignoreResult" : false,
+      "stepCompletionCode" : 200,
+      "responseDataCheck" : {
+        "goodFin" : "0",
+        "badFin" : null,
+        "attributeToCheck" : "$.Stats.ExitCode",
+        "poll" : false,
+        "pollDelay" : null,
+        "pollInterval" : null,
+        "pollMaxTime" : null
+      },
+      "fileName" : null
+    }
+  } ],
+  "variables" : [ ],
+  "environmentVariables" : [ ],
+  "properties" : [ ]
+}
+```
 ## Kubernetes yml File
 The following is a Kubernetes yaml file that can be used to deploy an OpCon environment within a Kubernetes cluster. The deployment consists of 3 containers (OpCon, Deploy (Impex2), Webservices). The environment uses Azure-SQL for the OpCon database.  
 ```

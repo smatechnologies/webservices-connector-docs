@@ -506,3 +506,58 @@ In the **Step** tab, enter the following:
 
 ```      
 When trying to define the SOAP envelope, the best approach is to retrieve the wsdl definition by submitted the https://www.w3schools.com/xml/tempconvert.asmx?wsdl in a browser. This will return the end-points supported by the tempconvert.asmx service.
+
+## Starting Jobs within VisualCron (RPA)
+WebServices can be used to issue commands to start and monitor VisualCron defined jobs using the VisualCron Rest-API (a VisualCron job is like an OpCon sub-schedule and contains one or more tasks which can be equated to OpCon jobs). 
+
+A VisualCron job can consist of one or more tasks. In all cases the job should be monitored for completion not the individual tasks.
+
+When starting tasks within VisualCron, it is possible to pass VisualCron job variable values as part of the OpCon job definition. 
+
+The VisualCron Rest-API uses GET functions for all requests.
+
+The process to start and monitor VisualCron jobs requires the following steps. It is recommended that WebServices variables be used to define the url, user, password and job names.
+The following section outlines the basic steps required to execute and monitor VisualCron jobs. 
+
+1.  Authenticate using a VisualCron user and password and save the returned token as a WebServices variable to be used for subsequent requests.
+
+    http://@Url/VisualCron/json/logon?username=@User&password=@Password&expire=3600
+    The token can be retrieved using the JsonPath value **$.Token** and saving in a @Token WebServices variable. 
+2.  Retrieve the job id of the job that should be started using the name of the job.
+
+    http://@Url/VisualCron/json/Job/GetByName?token=@Token&name=@Jobname
+    The @Token value is the value retrieved in step 1. 
+    The jobid can be retrieved using the JsonPath value **$.Id** and saving in a @Jobid WebServices variable. 
+3.  Start the job using the job id retrieved in step 2 passing variables if required.
+
+    http://@Url/VisualCron/json/Job/Run?token=@Token&id=@Jobid&variables=@Variables
+    http://@Url/VisualCron/json/Job/Run?token=@Token&id=@Jobid
+    The @Token value is the value retrieved in step 1. 
+    The @Jobid value is the value retrieved in step 2. 
+4.  Monitor the status of the job using the Status field of the Stats attribute. 
+    http://@Url/VisualCron/json/Job/Get?token=@Token&id=@Jobid
+    The @Token value is the value retrieved in step 1. 
+    The @Jobid value is the value retrieved in step 2. 
+
+    The job status can be retrieved using the JsonPath value **$.Stats.Status**
+    goodFin value is 1, badFin value is 2.
+    The status values consist of the following:
+    - 0  means Job is running
+    - 1  means Job is waiting - in VisualCron when a job completes, it goes back to the waiting state
+    - 2  paused 
+5.  After job completion, get the job completion code from the ExitCode field of the Stats attribute 
+    http://@Url/VisualCron/json/Job/Get?token=@Token&id=@Jobid
+    The @Token value is the value retrieved in step 1. 
+    The @Jobid value is the value retrieved in step 2. 
+
+    The job exit code can be retrieved using the JsonPath value **$.Stats.ExitCode**
+    goodFin value is 0
+    If the goodFin value is 0, the job return code will be 200, otherwise the job return code will be 404.     
+6.  It is possible to retrieve a VisualCron job variable value
+    http://@Url/VisualCron/json/JobVariableValue/Get?token=@Token&jobId=@Jobid&id=jobvarname
+   The @Token value is the value retrieved in step 1. 
+    The @Jobid value is the value retrieved in step 2. 
+    The jobvarname is the name of the job variable.
+
+    When retrieving the value of a VisualCron job variable, a text string is returned. To parse this value and insert it into a WebServices variable for future use, in the **Response.Response Variable Management** section of the request insert a variable name and the value **TEXTSTRING**.
+    This will indicate to the parsing mechanism that the returned data is a text string instead of an Json or XML structure. 

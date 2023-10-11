@@ -121,7 +121,7 @@ Attribute Name | Attribute Value
 Authorization  | NTLM
 
 ##### Token Authentication
-When using Token Authentication, a header Attribute Name of **Authorization** and a Attribute Value which is dependent on the receipient application must be used. The token is usually retrieved in a previous step and saved in a dynamic variable (@Token) which is then used in then used in the subsequent requests. For authentication to the OpCon REST-API, the Attribute value is Token \<***token***\>. 
+When using Token Authentication, a header Attribute Name of **Authorization** and a Attribute Value which is dependent on the recipient application must be used. The token is usually retrieved in a previous step and saved in a dynamic variable (@Token) which is then used in then used in the subsequent requests. For authentication to the OpCon REST-API, the Attribute value is Token \<***token***\>. 
 
 Attribute Name | Attribute Value
 -------------- | -----------
@@ -135,7 +135,7 @@ Attribute Name | Attribute Value
 Authorization  | CERT
 
 ##### Using SOAP 
-When working with SOAP Webservices, a header Attribute Name of **Message-Type** and a Attribute Value of **SOAP** must be definedand the Content-Type text/xml should be selected.
+When working with SOAP Webservices, a header Attribute Name of **Message-Type** and a Attribute Value of **SOAP** must be defined and the Content-Type text/xml should be selected.
 
 #### Body Tab
 The payload can be entered using the Body Tab. 
