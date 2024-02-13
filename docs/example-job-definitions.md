@@ -461,6 +461,7 @@ In the **Step** tab, enter the following:
         i.	 Select multipart/form-data from the Content Type drop-down list.
         ii.	 Select the Body TAB.
         iii. In the File Name field enter the full name of the file that must be uploaded.
+        iv.  Select the record termination string from the drop-down list (CRLF for Windows target environment or LF Unix/LInux target environment).
     d.	Select the Response tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Step Completion tab.

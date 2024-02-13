@@ -149,16 +149,17 @@ The Connector.config contains the following values
 
 Property Name | Value
 --------- | -----------
-**[GENERAL]**                | header
-**DATA_DIRECTORY**           | A default data directory that can be used by the connector for storing created templates. When entering a value remember to include double \ characters.
-**USES_PROXY**               | Indicates if the Connector uses a proxy server. Values are True or False, default is False.
-**DEBUG**                    | Turns debug value on or off. Should be set when defining steps as this will dump all the data which can be analyzed to determine the location of attribute values to extract.Values are True or False, default is False.
-**[PROXY]**                  | header - required if **USES_PROXY** is set to True.
-**URL**                      | The full proxy server URL (i.e. http://***proxy server***:***port***).
-**[OPCON_API]**              | header - required and defines the connection to the OpCon-API
-**SERVER**                   | The address of the host OpCon server is inserted into the Connector.config file by using the -–setup switch when executing the connector. 
-**USETLS**                   | Indicates if the OpCon Rest API server is supporting TLS and inserted into the Connector.config file by using the -–setup switch when executing the connector. 
-**TOKEN**                    | The application level token value which is set by using the -–setup switch when executing the connector. A CONNECTORS application token is created, and the value of the token is inserted into the Connector.config file.
+**[GENERAL]**                    | header
+**DATA_DIRECTORY**               | A default data directory that can be used by the connector for storing created templates. When entering a value remember to include double \ characters.
+**USES_PROXY**                   | Indicates if the Connector uses a proxy server. Values are True or False, default is False.
+**UPDATE_PROPERTIES_ON_FAILURE** | Indicates if the Connector should update OpCon properties if the task fails. Values are True or False, default is False.
+**DEBUG**                        | Turns debug value on or off. Should be set when defining steps as this will dump all the data which can be analyzed to determine the location of attribute values to extract.Values are True or False, default is False.
+**[PROXY]**                      | header - required if **USES_PROXY** is set to True.
+**URL**                          | The full proxy server URL (i.e. http://***proxy server***:***port***).
+**[OPCON_API]**                  | header - required and defines the connection to the OpCon-API
+**SERVER**                       | The address of the host OpCon server is inserted into the Connector.config file by using the -–setup switch when executing the connector. 
+**USETLS**                       | Indicates if the OpCon Rest API server is supporting TLS and inserted into the Connector.config file by using the -–setup switch when executing the connector. 
+**TOKEN**                        | The application level token value which is set by using the -–setup switch when executing the connector. A CONNECTORS application token is created, and the value of the token is inserted into the Connector.config file.
 
 Example configuration file. 
 
@@ -166,6 +167,7 @@ Example configuration file.
 [GENERAL]
 DATA_DIRECTORY=c:\\connectors\\wsrest\\data
 USES_PROXY=False
+UPDATE_PROPERTIES_ON_FAILURE=False
 DEBUG=False
 
 [PROXY]

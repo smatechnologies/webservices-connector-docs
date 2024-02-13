@@ -1,8 +1,38 @@
-# Release Notes WebServices 21.2
+# Release Notes 
 
 ## General
 
 This version of the connector requires OpCon version STS 20.7 or LTS 21.0 or greater.
+
+## WebServices 21.3
+
+During the upgrade process, both the Connector and the EM Plugin must be upgraded.
+
+The **Communication Settings** value **Requires XML Escape Sequences** of the Windows Agent that the Webservices Connector is associated with
+must be set to **True**.
+
+**CONNUTIL-623**    
+					Add new configuration check to allow property updates on failure.   
+					Includes new configuration option UPDATE_PROPERTIES_ON_FAILURE
+
+					[GENERAL]
+					DATA_DIRECTORY=
+					USES_PROXY=False
+					UPDATE_PROPERTIES_ON_FAILURE=False
+					DEBUG=False
+
+**CONNUTIL-624**    
+					Add new LF or CRLF selection when uploading message body information from file during POST & PUT requests as Windows expects CRLF and
+					Unix/Linux expects LF for record termination.
+					The default value is set as CRLF.
+**CONNUTIL-625**    
+					Add the capability to extract the contents of an array item returned in a JSON structure. When using this, the JsonPath value should
+					end in the required array value (i.e $.stats.[0]).					
+**CONNUTIL-626**    
+					Corrected a problem when single quote characters are used in the JSON message body. The single quote character is escaped by the 
+					Enterprise Manager plugin and then reverted by the Webservices connector prior to execution. 
+
+## WebServices 21.2
 
 Provides information on executing VisualCron Jobs to support RPA.
 Provides information on running WebServices Jobs as Windows Embedded Script jobs.
