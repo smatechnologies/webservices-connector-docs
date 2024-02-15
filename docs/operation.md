@@ -48,6 +48,25 @@ The JSONPath syntax to scan for the value of an attribute nodeType within a JSON
 - node1 is the name of a JSON node within the first JSON node
 - [*] indicates the scan all records of the JSONARRAY following the JSON node node1
 
+The JSONPath syntax to extract the value of array item is: **$.node.node1.[1]** 
+- $ indicates root node operator
+- node is the name of a JSON node
+- node1 is the name of a JSON node within the first JSON node
+- [1] indicates the required record of the JSONARRAY following the JSON node node1
+
+In the following example:
+```
+{
+  “node”:{
+    “node1”:{
+     [
+      {“nodeType”:”Type3”},
+      {“nodeType”:”Type4”}
+     ],
+    }
+  }
+}
+```
 ### XPath 
 XPath stands for XML Path Language. XPath uses ‘path like’ syntax to identify and navigate nodes in an XML document.
 
