@@ -4,6 +4,29 @@
 
 This version of the connector requires OpCon version STS 20.7 or LTS 21.0 or greater.
 
+## WebServices 21.4
+
+During the upgrade process, both the Connector and the EM Plugin must be upgraded.
+
+**CONNUTIL-626**    
+					Removed extra CR+LF at end of received file.   
+**CONNUTIL-644**    
+					Add PATCH function to connector.   
+**CONNUTIL-647**    
+					Corrected typo in application/octet-stream in subtype drop-down list.
+**CONNUTIL-648**    
+					Support json patch media type for POST and PUT functions.
+**CONNUTIL-651**    
+					Corrected octet streaming file upload for POST & PUT functions.
+					Add header logging.
+					Corrected POST function using application/json-patch+json media type.
+					adjusted multi-part file upload.
+					updated software libraries. 
+
+### Upgrade Considerations
+
+To implement the application/octet-stream media type selection correction & application/json-patch+json media selection, the Enterprise Manager WebServices sub-type must be updated.
+
 ## WebServices 21.3
 
 During the upgrade process, both the Connector and the EM Plugin must be upgraded.
