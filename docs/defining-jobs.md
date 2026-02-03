@@ -94,6 +94,8 @@ Select the function (**GET, POST,PUT, DELETE**) from the drop-down list and ente
 
 If this step requires a proxy server, enter the full proxy server URL in the **Proxy Server** field. If the Proxy server is activated in the Connector.config, the value in the **Proxy Server** field will override it.
 
+Select the TLS version to use for this step from the **TLS** drop-down list. The currently supported values are **TLS, TLSv1.0, TLSv1.1, TLSv1.2 nad TLSv1.3** with default value set to **TLS**.
+
 ### Request Information Tab
 The Request information consists of selecting the Content Type that will be submitted from the drop-down list, defining header attributes that will be inserted into the header of the request and the associated payload should the request be a POST or a PUT. 
 

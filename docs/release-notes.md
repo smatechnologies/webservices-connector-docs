@@ -4,6 +4,20 @@
 
 This version of the connector requires OpCon version STS 20.7 or LTS 21.0 or greater.
 
+## WebServices 21.6
+
+**CON-9 and CON-384**    
+					Add TLS definition to each step. Requires updating both sub-type and connector. TLS value set to TLS by default to ensure backwards compatibility. 
+**CON-622**    
+					Updated multipart/form-body to correctly pass variables defined in the from-data during file upload. 
+**CON-802**    
+					Corrected a problem during GET poll loop when the step completes correctly, but then returns a 0 resulting in the task terminating in an error condition. 
+					
+## WebServices 21.5
+
+**CONNUTIL-657**    
+					Updated JSON parsing routine to include a predicate to support more complex filters.   
+
 ## WebServices 21.4
 
 During the upgrade process, both the Connector and the EM Plugin must be upgraded.
