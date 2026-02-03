@@ -9,6 +9,8 @@ This section contains various job templates that can be used when working with t
   "steps" : [ {
     "function" : "GET",
     "url" : "https://<server name>:9010/api/version",
+    "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "contentType" : "application/json",
       "headers" : [ ],
@@ -37,6 +39,8 @@ This section contains various job templates that can be used when working with t
   "steps" : [ {
     "function" : "POST",
     "url" : "https://<server name>:9010/api/tokens",
+    "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "contentType" : "application/json",
       "headers" : [ ],
@@ -57,6 +61,8 @@ This section contains various job templates that can be used when working with t
   }, {
     "function" : "GET",
     "url" : "https://<server name>:9010/api/globalproperties?name=@GlobalPropertyName",
+    "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "contentType" : "application/json",
       "headers" : [ {
@@ -80,6 +86,8 @@ This section contains various job templates that can be used when working with t
   }, {
     "function" : "PUT",
     "url" : "https://<server name>:9010/api/globalproperties/@Propertyid",
+    "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "contentType" : "application/json",
       "headers" : [ {
@@ -120,6 +128,8 @@ This section contains various job templates that can be used when working with t
   "steps" : [ {
     "function" : "POST",
     "url" : "https://<server name>:9010/api/tokens",
+    "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "headers" : [ ],
       "body" : "{\"id\":null,\"user\":{\"id\":-1,\"loginName\":\"@User\",\"password\":
@@ -140,6 +150,8 @@ This section contains various job templates that can be used when working with t
   }, {
     "function" : "POST",
     "url" : "https://<server name>:9010/api/schedulebuilds",
+    "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "contentType" : "application/json",
       "headers" : [ {
@@ -163,6 +175,8 @@ This section contains various job templates that can be used when working with t
   }, {
     "function" : "GET",
     "url" : "https://<server name>:9010/api/schedulebuilds/@Buildid",
+    "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "contentType" : "application/json",
       "headers" : [ {
@@ -214,6 +228,8 @@ This section contains various job templates that can be used when working with t
   "steps" : [ {
     "function" : "GET",
     "url" : "https://uap.easyvista.com:/api/v1/@Company/requests",
+    "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "contentType" : "application/json",
       "headers" : [ {
@@ -255,6 +271,7 @@ This section contains various job templates that can be used when working with t
     "function" : "GET",
     "url" : "https://10.1.0.4/version.json",
     "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "headers" : [ {
         "attribute" : "Authorization",
@@ -302,7 +319,8 @@ This section contains various job templates that can be used when working with t
     "function" : "GET",
     "url" : "https://client.badssl.com",
     "proxyServer" : null,
-    "request" : {
+    "tlsVersion" : "TLS",
+   "request" : {
       "headers" : [ {
         "attribute" : "Authorization",
         "value" : "CERT"
@@ -343,6 +361,7 @@ The following definition contains the Embedded Script WebServices-vcon-vars
     "function" : "GET",
     "url" : "http://@Url/VisualCron/json/logon?username=@User&password=@Password&expire=3600",
     "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "headers" : [ ],
       "contentType" : "application/json",
@@ -364,6 +383,7 @@ The following definition contains the Embedded Script WebServices-vcon-vars
     "function" : "GET",
     "url" : "http://@Url/VisualCron/json/Job/GetByName?token=@Token&name=@Jobname",
     "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "headers" : [ ],
       "contentType" : "application/json",
@@ -385,6 +405,7 @@ The following definition contains the Embedded Script WebServices-vcon-vars
     "function" : "GET",
     "url" : "http://@Url/VisualCron/json/Job/Run?token=@Token&id=@Jobid&variables=@Variables",
     "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "headers" : [ ],
       "contentType" : "application/json",
@@ -403,6 +424,7 @@ The following definition contains the Embedded Script WebServices-vcon-vars
     "function" : "GET",
     "url" : "http://@Url/VisualCron/json/Job/Get?token=@Token&id=@Jobid",
     "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "headers" : [ ],
       "contentType" : "application/json",
@@ -429,6 +451,7 @@ The following definition contains the Embedded Script WebServices-vcon-vars
     "function" : "GET",
     "url" : "http://@Url/VisualCron/json/Job/Get?token=@Token&id=@Jobid",
     "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "headers" : [ ],
       "contentType" : "application/json",
@@ -465,6 +488,7 @@ The following definition contains the Embedded Script WebServices-vcon-no-vars
     "function" : "GET",
     "url" : "http://@Url/VisualCron/json/logon?username=@User&password=@Password&expire=3600",
     "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "headers" : [ ],
       "contentType" : "application/json",
@@ -486,6 +510,7 @@ The following definition contains the Embedded Script WebServices-vcon-no-vars
     "function" : "GET",
     "url" : "http://@Url/VisualCron/json/Job/GetByName?token=@Token&name=@Jobname",
     "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "headers" : [ ],
       "contentType" : "application/json",
@@ -507,6 +532,7 @@ The following definition contains the Embedded Script WebServices-vcon-no-vars
     "function" : "GET",
     "url" : "http://@Url/VisualCron/json/Job/Run?token=@Token&id=@Jobid",
     "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "headers" : [ ],
       "contentType" : "application/json",
@@ -525,6 +551,7 @@ The following definition contains the Embedded Script WebServices-vcon-no-vars
     "function" : "GET",
     "url" : "http://@Url/VisualCron/json/Job/Get?token=@Token&id=@Jobid",
     "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "headers" : [ ],
       "contentType" : "application/json",
@@ -551,6 +578,7 @@ The following definition contains the Embedded Script WebServices-vcon-no-vars
     "function" : "GET",
     "url" : "http://@Url/VisualCron/json/Job/Get?token=@Token&id=@Jobid",
     "proxyServer" : null,
+    "tlsVersion" : "TLS",
     "request" : {
       "headers" : [ ],
       "contentType" : "application/json",

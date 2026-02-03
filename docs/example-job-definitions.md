@@ -22,7 +22,9 @@ In the **Step** tab, enter the following:
     The first Step function is a POST request to obtain an authentication token.
     a.	Select the POST function.
     b.	Enter the full URL https://@Url/api/tokens (in this case the https indicates that the connector will use TLS when communicating with the web server).
-    c.	Select the Request tab.
+    c.  If a proxy server is required enter the URL of the proxy server.
+    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
+    e.	Select the Request tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Body tab.
         iii. In the message body, enter the JSON data to be submitted as part of the POST request using the @User and @Password global variables. While processing the request, the 
@@ -43,7 +45,7 @@ In the **Step** tab, enter the following:
                 }
             } 
  
-    d.	Select the Response tab.
+    f.	Select the Response tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Response Variable Management tab.
         iii. The request will return the authentication token and we need to extract the value and place it in a variable that will be used by the subsequent steps. In the Attribute
@@ -52,18 +54,20 @@ In the **Step** tab, enter the following:
              indicates get the value of the first id attribute in the JSON data.
         iv.	 Select the Step Completion tab.
         v.	 Set the Step completion code to 200.
-    e.	Press the Add Step button.
+    g.	Press the Add Step button.
 2.	Step 2 (Select the (+) definition).
     The second Step function is a GET request to obtain the global property defined in the @GlobalProperty variable.
     a.	Select the GET function.
     b.	Enter the full URL https://@Url/api/globalproperties?name=@GlobalProperty
-    c.	Select the Request tab
+    c.  If a proxy server is required enter the URL of the proxy server.
+    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
+    e.	Select the Request tab
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Header tab.
         iii. In the Attributes section indicate the authentication token. The authorization value is defined by the web server and the definition for an OpCon system is ‘Token <token 
              value>’. Enter an attribute consisting of Authorization into the Name field and Token @Token into the Value field. 
         iv.	 The @Token variable value extracted during the previous step (Step1) will be inserted into header attributes by the connector.
-    d.	Select the Response tab
+    f.	Select the Response tab
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Response Variable tab.
         iii. The request will return the property id and we need to extract the value and place it in a variable that will be used by the subsequent steps. In the Attribute section enter a 
@@ -71,14 +75,16 @@ In the **Step** tab, enter the following:
              ([0]) indicates that the first record of the array is required and the (.id) indicates that the value of the first id attribute is required. 
         iv.	 Select the Step Completion tab.
         v.	 Set the Step completion code to 200
-        e.	 Press the Add Step button.
+    g.	 Press the Add Step button.
 3.	Step 3 (Select the (+) definition).
     The third Step function is a PUT request to update the global property defined in the @GlobalProperty variable.
     a.	Select the PUT function.
     b.	Enter the full URL https://@Url/api/globalproperties/@Propertyid
         The @Propertyid will be replaced in the URL with the value of the @Propertyid variable value extracted during the previous step (Step2) the connector. This shows how information
         extracted from a previous step can be used when creating URLs.
-    c.	Select the Request tab
+    c.  If a proxy server is required enter the URL of the proxy server.
+    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).    
+    e.	Select the Request tab
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Header tab.
         iii. In the Attributes section indicate the authentication token. The authorization value is defined by the web server and the definition for an OpCon system is ‘Token <token 
@@ -95,11 +101,11 @@ In the **Step** tab, enter the following:
 
             Notice that the @Propertyid is also replaced in the JSON data by the Connector as the JSON data requires the id of the property that is being updated. The property name is 
             taken from the @GlobalProperty variable.
-    d.	Select the Response tab.
+    f.	Select the Response tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Step Completion TAB.
         iii. Set the Step completion code to 200
-    e.	Press the Add Step button.
+    g.	Press the Add Step button.
 
 ```
 ## Using Poll capability to track execution (multiple Steps)
@@ -124,7 +130,9 @@ In the **Step** tab, enter the following:
     The first Step function is a POST request to obtain an authentication token.
     a.	Select the POST function.
     b.	Enter the full URL https://@Url/api/tokens (in this case the https indicates that the connector will use TLS when communicating with the web server).
-    c.	Select the Request tab.
+    c.  If a proxy server is required enter the URL of the proxy server.
+    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
+    d.	Select the Request tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Body tab.
         iii. In the message body, enter the JSON data to be submitted as part of the POST request using the @User and @Password global variables. While processing the request, the
@@ -144,8 +152,7 @@ In the **Step** tab, enter the following:
                     "type":"User"
                 }
             } 
-
-    d.	Select the Response tab.
+    e.	Select the Response tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Response Variable Management tab. 
         iii. The request will return the authentication token and we need to extract the value and place it in a variable that will be used by the subsequent steps. In the Attribute 
@@ -154,12 +161,14 @@ In the **Step** tab, enter the following:
              indicates get the value of the first id attribute in the JSON data.
         iv.	 Select the Step Completion tab.
         v.	 Set the Step completion code to 200.
-    e.	Press the Add Step button.
+    f.	Press the Add Step button.
 2.	Step 2 (Select the (+) definition).
     The second Step second Step function is a POST request to perform a schedule build.
     a.	Select the POST function.
     b.	Enter the full URL https://@Url/api/schedulebuilds
-    c.	Select the Request tab.
+    c.  If a proxy server is required enter the URL of the proxy server.
+    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
+    e.	Select the Request tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Header tab.
         iii. In the Attributes section indicate the authentication token. The authorization value is defined by the web server and the definition for an OpCon system is ‘Token <token 
@@ -182,8 +191,7 @@ In the **Step** tab, enter the following:
                 "overwrite":true,
                 "hold":true
             }
- 
-    d.	Select the Response tab.
+    f.	Select the Response tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Response Variable Management tab.
         iii. The request will return information about the schedule build and we need the schedule build id to determine if the build completed successfully in subsequent steps. In the 
@@ -192,7 +200,7 @@ In the **Step** tab, enter the following:
              and the (.id) indicates get the value of the first id attribute in the JSON data.
         iv.	 Select the Step Completion tab.
         v.	 Set the Step completion code to 201.
-    e.	Press the Add Step button.
+    g.	Press the Add Step button.
 3.	Step 3 (Select the (+) definition).
     The third Step function is a GET request to determine the status of the build request. A poll is performed until a completion result is determined by checking the contents of the
     returned JSON data for a specific attribute value
@@ -200,14 +208,16 @@ In the **Step** tab, enter the following:
     b.	Enter the full URL https://@Url/api/schedulebuilds/@Buildid
         The @Buildid will be replaced in the URL with the value of the @Buildid variable by the connector. This shows how information extracted from a previous step can be used when 
         creating URLs.
-    c.	Select the Request tab.
+    c.  If a proxy server is required enter the URL of the proxy server.
+    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
+    e.	Select the Request tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Header tab.
         iii. In the Attributes section indicate the authentication token. The authorization value is defined by the web server and the definition for an OpCon system is ‘Token <token 
              value>’. Enter an attribute consisting of Authorization into the Name field and Token @Token into the Value field. The @Token variable value extracted during the previous step 
              (Step1) will be inserted into the attribute value by the connector. 
         iv.	 Select the Body tab.
-    d.	Select the Response tab.
+    f.	Select the Response tab.
         The GET request will poll the server several times to get the completion status of the build request. The Check Returned Data and Poll values must be completed.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Step Completion tab.
@@ -220,7 +230,7 @@ In the **Step** tab, enter the following:
              long to wait for subsequent checks.
         vii. By setting the Max Time to 5 minutes, the connector will check for a positive response for 5 minutes before returning a 408 (timeout error).
         viii. A return code of 460 will be sent if the Bad Finish value is received.
-e.	Press the Add Step button.
+    g.	Press the Add Step button.
 
 ```
 ## OAuth2 Authentication using x-www-form-urlencoded
@@ -243,15 +253,16 @@ In the **Step** tab, enter the following:
     The first Step function is a POST request to obtain an authentication token.
     a.	Select the POST function.
     b.	Enter the full URL https://@Url/@Tenantid/oauth2/token (in this case the https indicates that the connector will use TLS when communicating with the web server).
-    c.	Select the Request tab.
+    c.  If a proxy server is required enter the URL of the proxy server.
+    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
+    e.	Select the Request tab.
         i.	 Select application/x-www-form-urlencoded from the Content Type drop-down list.
         ii.	 Select the Body tab.
         iii. In the message body, enter the data to be submitted as part of the POST request using the @Clientid and @Key global variables. The values are entered in name=value pairs using 
              the amphisan (&) character as the delimiter. While processing the request, the connector will substitute the variable names in the data with the required values.
 
             grant_type=client_credentials&client_id=@Clientid&client_secret=@Key&resource=https://management.azure.com/
- 
-    d.	Select the Response tab.
+    f.	Select the Response tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Response Variable Management tab.
         iii. The request will return the authentication token and we need to extract the value and place it in a variable that will be used by the subsequent steps. In the Attribute 
@@ -260,7 +271,7 @@ In the **Step** tab, enter the following:
              and the (.access_token) indicates get the value of the first access-token attribute in the JSON data. 
         iv.	 Select the Step Completion TAB.
         v.   Set the Step completion code to 200.
-    e.	Press the Add Step button.
+    g.	Press the Add Step button.
  
 ```
 ## Basic Mode Authentication
@@ -281,17 +292,19 @@ In the **Step** tab, enter the following:
     The first Step function is a GET request to retrieve information from the Web Server.
     a.	Select the GET function.
     b.	Enter the full URL https://@Url/issues/182.xml (in this case the https indicates that the connector will use TLS when communicating with the web server).
-    c.	Select the Request tab.
+    c.  If a proxy server is required enter the URL of the proxy server.
+    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
+    e.	Select the Request tab.
         i.	 Select application/xml from the Content Type drop-down list.
         ii.	 Select the Header TAB.
         iii. In the Attributes section indicate basic authentication will be used. Enter an attribute consisting of Authorization into the Name field and Basic into the Value field. The 
         Connector will detect that Basic authentication is required and perform the required Base64 encoding of the ‘@User:@Password’ string and append this to the header attribute (Basic 
         @User:@Password). 
-    d.	Select the Response tab
+    f.	Select the Response tab
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Step Completion tab.
         iii. Set the Step completion code to 200.
-    e.	Press the Add Step button.
+    g.	Press the Add Step button.
  
 ```
 ## Using Environment Variables 
@@ -322,19 +335,21 @@ In the **Step** tab, enter the following:
     The first Step function is a POST request to obtain an authentication token.
     a.	Select the POST function.
     b.	Enter the full URL https://@Url/api/tokens (in this case the https indicates that the connector will use TLS when communicating with the web server).
-    c.	Select the Request tab.
+    c.  If a proxy server is required enter the URL of the proxy server.
+    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
+    e.	Select the Request tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Body tab.
         iii. In the File Name field enter the name of the full filename (@MAIN_PATH\wsfiles\login.json) that contains the login information using the Environment Variable name to provide 
         the path information. While processing the request, the connector will substitute the variable names in the JSON definition with the required values.
-    d.	Select the Response tab.
+    f.	Select the Response tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Response Variable Management tab.
         iii. The request will return the authentication token and we need to extract the value and place it in a variable that will be used by the subsequent steps. In the Attribute 
              section add @Token into the Name field and $.id into the value field which will extract the first id attribute returned in the JSON data and save it in the variable @Token. 
              The $.id is a JSONPath definition indicating the attribute value to extract from the JSON data. The ($) indicates start from the root of the JSON structure and the (.id) 
              indicates get the value of the first id attribute in the JSON data.
-    e.	Press the Add Step button.
+    g.	Press the Add Step button.
 
             File contents:
             {
@@ -371,9 +386,11 @@ In the **Step** tab, enter the following:
     The first Step function is a GET request to obtain the OpCon-API version.
     a.	Select the GET function.
     b.	Enter the full URL https://@Url/api/version (in this case the https indicates that the connector will use TLS when communicating with the web server).
-    c.	Select the Request tab.
+    c.  If a proxy server is required enter the URL of the proxy server.
+    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
+    e.	Select the Request tab.
         i.	 Select application/json from the Content Type drop-down list.
-    d.	Select the Response tab.
+    f.	Select the Response tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Response Variable Management tab. 
         iii. The request will return the OpCon-API version and we need to extract the value and place it in a variable that will be used by the subsequent steps. In the Attribute section 
@@ -383,7 +400,7 @@ In the **Step** tab, enter the following:
              structure and the (.opConRestApiProductVersion) indicates get the value of the first id attribute in the JSON data.
         iv.	 Select the Step Completion TAB.
         v.	 Set the Step completion code to 200.
-    e.	Press the Add Step button.
+    g.	Press the Add Step button.
  
 ```
 ## Windows Authentication
@@ -405,16 +422,18 @@ In the **Step** tab, enter the following:
     The first Step function is a GET request to retrieve information from the Web Server.
     a.	Select the GET function.
     b.	Enter the full URL https://@Url/version (in this case the https indicates that the connector will use TLS when communicating with the web server).
-    c.	Select the Request tab.
+    c.  If a proxy server is required enter the URL of the proxy server.
+    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
+    e.	Select the Request tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Header tab.
         iii. In the Attributes section indicate Windows authentication will be used. Enter an attribute consisting of Authorization into the Name field and NTLM into the Value field. The 
         Connector will detect that Windows authentication is required and create the required credentials for such a connection.
-    d.	Select the Response tab.
+    f.	Select the Response tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Step Completion TAB.
         iii. Set the Step completion code to 200.
-    e.	Press the Add Step button.
+    g.	Press the Add Step button.
 
 ```
 ## Using Client Certificates
@@ -434,16 +453,18 @@ In the **Step** tab, enter the following:
     The first Step function is a GET request to retrieve information from the Web Server.
     a.	Select the GET function.
     b.	Enter the full URL https://client.badssl.com (in this case the https indicates that the connector will use TLS when communicating with the web server).
-    c.	Select the Request tab.
+    c.  If a proxy server is required enter the URL of the proxy server.
+    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
+    e.	Select the Request tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Header tab.
         iii. In the Attributes section indicate certificate authentication will be used. Enter an attribute consisting of Authorization into the Name field and CERT into the Value field. 
              The Connector will detect that certification authentication is required and create the required credentials for such a connection.
-    d.	Select the Response tab.
+    f.	Select the Response tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Step Completion tab.
         iii. Set the Step completion code to 200.
-    e.	Press the Add Step button.
+    g.	Press the Add Step button.
 
 ``` 
 ## File upload
@@ -457,16 +478,19 @@ In the **Step** tab, enter the following:
     The Step function is a POST request to submit information to the Web Server.
     a.	Select the POST function.
     b.	Enter the full URL http://httpbin.org/post (in this case the http indicates that the connector will use non-TLS when communicating with the web server).
-    c.	Select the Request tab.
+    c.  If a proxy server is required enter the URL of the proxy server.
+    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
+    e.	Select the Request tab.
         i.	 Select multipart/form-data from the Content Type drop-down list.
         ii.	 Select the Body TAB.
         iii. In the File Name field enter the full name of the file that must be uploaded.
         iv.  Select the record termination string from the drop-down list (CRLF for Windows target environment or LF Unix/LInux target environment).
-    d.	Select the Response tab.
+        v.   When submitting variables, enter them in the Message Body section. The format is name=value&name1=value1.
+    f.	Select the Response tab.
         i.	 Select application/json from the Content Type drop-down list.
         ii.	 Select the Step Completion tab.
         iii. Set the Step completion code to 200.
-    e.	Press the Add Step button.
+    g.	Press the Add Step button.
 
 ```
 ## SOAP Webservices
@@ -482,7 +506,9 @@ In the **Step** tab, enter the following:
     The Step function is a POST request to submit information to the Web Server.
     a.	Select the POST function
     b.	Enter the full URL https://www.w3schools.com/xml/tempconvert.asmx (in this case the http indicates that the connector will use TLS when communicating with the web server).
-    c.	Select the Request tab.
+    c.  If a proxy server is required enter the URL of the proxy server.
+    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
+    e.	Select the Request tab.
         i.	 Select text/xml from the Content Type drop-down list.
         ii.	 Add Message-Type=SOAP header attribute.
         iii. Select the Body tab.
@@ -496,14 +522,13 @@ In the **Step** tab, enter the following:
                 </CelsiusToFahrenheit>
             </soap12:Body>
             </soap12:Envelope>
-    
-    d.	Select the Response tab.
+    f.	Select the Response tab.
         i.	 Select application/xml from the Content Type drop-down list.
         ii.	Insert the attribute extract information into the Response Variable Management table. Variable name @Fahrenheit value //CelsiusToFahrenheitResponse/CelsiusToFahrenheitResult/
             text().
         iii. Select the Step Completion tab.
         iv.  Set the Step completion code to 200.
-    e.	Press the Add Step button.
+    g.	Press the Add Step button.
 
 ```      
 When trying to define the SOAP envelope, the best approach is to retrieve the wsdl definition by submitted the https://www.w3schools.com/xml/tempconvert.asmx?wsdl in a browser. This will return the end-points supported by the tempconvert.asmx service.
