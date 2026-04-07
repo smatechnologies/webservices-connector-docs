@@ -4,6 +4,21 @@
 
 This version of the connector requires OpCon version STS 20.7 or LTS 21.0 or greater.
 
+## WebServices 21.7
+
+**CON-1031**    
+					Fixed the following vulnerabilities
+                    - webservices.connector.jar contains xstream 1.3.1 (CVE-2021-39144) 
+                    - webservices.connector.jar contains commons-beanutils 1.8.3 (CVE-2014-0114) 
+                    - webservices.connector.jar contains commons-io 2.2 (CVE-2021-29425) 
+**CON-1187**
+					Updated Webservices Docker Image removing vulnerabilities
+					- Used new base image with latest Linux Agent and Java 25.
+					- Added Webservices 21.7.
+					- Removed the following additional spftware as images should be limited to a single function.
+						- AzureStorage (now available in ACS AzureWebservices)
+						- PowerShell
+						- AzureCLI
 ## WebServices 21.6
 
 **CON-9 and CON-384**    
