@@ -6,26 +6,27 @@ This version of the connector requires OpCon version STS 20.7 or LTS 21.0 or gre
 
 ## WebServices 21.7
 
-**CON-1031**
-					Fixed the following vulnerabilities
-                    - webservices.connector.jar contains xstream 1.3.1 (CVE-2021-39144) 
-                    - webservices.connector.jar contains commons-beanutils 1.8.3 (CVE-2014-0114) 
-                    - webservices.connector.jar contains commons-io 2.2 (CVE-2021-29425)
-**CON-1187**
-					Updated Webservices Docker Image removing vulnerabilities
-					- Used new base image with latest Linux Agent and Java 25.
-					- Added Webservices 21.7.
-					- Removed the following additional spftware as images should be limited to a single function.
-						- AzureStorage (now available in ACS AzureWebservices)
-						- PowerShell
-						- AzureCLI
+**CON-1031**    
+					Fixed the following vulnerabilities    
+					- webservices.connector.jar contains xstream 1.3.1 (CVE-2021-39144)    
+					- webservices.connector.jar contains commons-beanutils 1.8.3 (CVE-2014-0114)    
+					- webservices.connector.jar contains commons-io 2.2 (CVE-2021-29425)    
+**CON-1187**    
+					Updated Webservices Docker Image removing vulnerabilities    
+					- Used new base image with latest Linux Agent and Java 25.    
+					- Added Webservices 21.7.    
+					- Removed the following additional spftware as images should be limited to a single function.    
+						- AzureStorage (now available in ACS AzureWebservices)    
+						- PowerShell    
+						- AzureCLI    
+						
 ## WebServices 21.6
 
-**CON-9 and CON-384**
-					Add TLS definition to each step. Requires updating both sub-type and connector. TLS value set to TLS by default to ensure backwards compatibility. 
-**CON-622**
-					Updated multipart/form-body to correctly pass variables defined in the from-data during file upload. 
-**CON-802**
+**CON-9 and CON-384**   
+					Add TLS definition to each step. Requires updating both sub-type and connector. TLS value set to TLS by default to ensure backwards compatibility.   
+**CON-622**    
+					Updated multipart/form-body to correctly pass variables defined in the from-data during file upload.   
+**CON-802**    
 					Corrected a problem during GET poll loop when the step completes correctly, but then returns a 0 resulting in the task terminating in an error condition. 
 					
 ## WebServices 21.5
