@@ -1,9 +1,68 @@
+---
+sidebar_label: 'Templates'
+title: Webservices Connector job templates
+description: "Reusable JSON job templates for the Webservices Connector covering common authentication and request patterns, plus a Kubernetes deployment example."
+tags:
+  - Reference
+  - Automation Engineer
+  - Connectors
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Templates
-This section contains various job templates that can be used when working with the Webservices Connector.
 
-## Get without authentication 
+## What is it?
 
-```
+This page contains JSON-formatted job templates that you can import into the **Web Services** job sub-type using the **Import Template** function. Templates accelerate job creation by providing pre-built definitions for common scenarios. Sensitive values such as user names and passwords are written as `??????` so templates can be shared without exposing credentials.
+
+## How to use a template
+
+To import and use a template, complete the following steps:
+
+1. Save the JSON block from this page to a file on your workstation.
+2. In Enterprise Manager, open a **Web Services** job sub-type.
+3. Select **Import Template** and browse to the file.
+4. On the **Global Values** tab, replace each `??????` placeholder with the value for your environment.
+5. Adjust the URL host, port, and any other endpoint-specific values inside the imported steps.
+
+To save a job you have built as a template for sharing, select **Export Template**. The connector writes sensitive variable values back as `??????` to prevent inadvertent disclosure.
+
+For walk-through examples that explain each step's behavior, see [Example job definitions](./example-job-definitions.md).
+
+## Choose a template
+
+| # | Template | Template ID | Use case |
+|---|----------|-------------|----------|
+| 1 | [GET with no authentication](#1-get-with-no-authentication) | `OPCON-API_version` | Read the OpCon REST API version. |
+| 2 | [Update an OpCon property (token auth)](#2-update-an-opcon-property-token-auth) | `OpConAPI-PUPD` | Acquire a token, look up a property ID, and update the property. |
+| 3 | [Build an OpCon schedule with polling (token auth)](#3-build-an-opcon-schedule-with-polling-token-auth) | `OpConAPI-SBUILD` | Submit a schedule build and poll the build status. |
+| 4 | [GET with Basic authentication](#4-get-with-basic-authentication) | `EASYVISTA` | Send an authenticated GET request using HTTP Basic auth. |
+| 5 | [GET with Windows Authentication (NTLM)](#5-get-with-windows-authentication-ntlm) | *(none)* | Send an authenticated GET request to an IIS endpoint. |
+| 6 | [GET with client certificate](#6-get-with-client-certificate) | `certifcate` | Send a GET request authenticated with a PKCS12 client certificate. |
+| 7 | [VisualCron Embedded Script (vars / no-vars)](#7-visualcron-embedded-script-definitions) | *(none)* | Launch and monitor a VisualCron job, with or without passing job variables. |
+| 8 | [Kubernetes deployment (OpCon + Deploy + Webservices)](#8-kubernetes-deployment-opcon--deploy--webservices) | — | Deploy OpCon, Deploy (Impex2), and the Webservices Connector to a Kubernetes cluster. |
+
+:::tip Free-form template ID
+The `templateid` field is a free-form identifier you can use to recognize the source of an imported template — it does not affect connector behavior. A value of `null` simply means no identifier was assigned.
+:::
+
+## 1. GET with no authentication
+
+A single-step `GET` request that retrieves the OpCon REST API version. Useful as a smoke test for connectivity.
+
+**Template ID:** `OPCON-API_version`
+
+**Variables to fill in:** none.
+
+**Endpoint values to update:**
+
+| Field | Replace with |
+|-------|--------------|
+| URL `<server name>` | The hostname of your OpCon server. |
+
+```json
 {
   "templateid" : "OPCON-API_version",
   "steps" : [ {
@@ -31,9 +90,28 @@ This section contains various job templates that can be used when working with t
   "properties" : [ ]
 }
 ```
-## OpCon property update using Token authentication
+## 2. Update an OpCon property (token auth)
 
-```
+Three-step template that acquires an OpCon REST API token, looks up the global property ID, then updates the property value.
+
+**Template ID:** `OpConAPI-PUPD`
+
+**Variables to fill in:**
+
+| Variable | Description |
+|----------|-------------|
+| `@User` | OpCon user name. |
+| `@Password` | OpCon password. Encrypted global properties are supported (for example, `[[user_pwd]]`). |
+| `@GlobalPropertyName` | Name of the global property to update. |
+
+**Endpoint values to update:**
+
+| Field | Replace with |
+|-------|--------------|
+| URL `<server name>` | The hostname of your OpCon server. |
+| Step 3 body `value` | The new value to write into the global property. |
+
+```json
 {
   "templateid" : "OpConAPI-PUPD",
   "steps" : [ {
@@ -120,9 +198,39 @@ This section contains various job templates that can be used when working with t
   "properties" : [ ]
 }
 ```
-## OpCon schedule build including poll to check build result using Token authentication
+## 3. Build an OpCon schedule with polling (token auth)
 
-```
+Three-step template that acquires a token, submits a schedule build, then polls the build until it completes successfully or fails.
+
+**Template ID:** `OpConAPI-SBUILD`
+
+**Variables to fill in:**
+
+| Variable | Description |
+|----------|-------------|
+| `@User` | OpCon user name. |
+| `@Password` | OpCon password. Encrypted global properties are supported. |
+| `@ScheduleName` | Name of the schedule to build. |
+| `@ScheduleDate` | Schedule date in `yyyy-mm-dd` format. Use `[[$SCHEDULE DATE-YYYY-MM-DD]]`. |
+
+**Endpoint values to update:**
+
+| Field | Replace with |
+|-------|--------------|
+| URL `<server name>` | The hostname of your OpCon server. |
+
+**Polling behavior (Step 3):**
+
+| Field | Value |
+|-------|-------|
+| **Attribute to Check** | `$[0].message` |
+| **Good Finish** | `success/Completed` |
+| **Bad Finish** | `Failed` |
+| **Delay** | `3` seconds |
+| **Interval** | `2` seconds |
+| **Max Time** | `2` minutes |
+
+```json
 {
   "templateid" : "OpConAPI-SBUILD",
   "steps" : [ {
@@ -220,9 +328,27 @@ This section contains various job templates that can be used when working with t
   "properties" : [ ]
 }
 ```
-## Get using Basic authentication
+## 4. GET with Basic authentication
 
-```
+Single-step `GET` request that authenticates against an EasyVista endpoint using HTTP Basic. The connector detects `Authorization: Basic` and Base64-encodes `@User:@Password` automatically.
+
+**Template ID:** `EASYVISTA`
+
+**Variables to fill in:**
+
+| Variable | Description |
+|----------|-------------|
+| `@User` | EasyVista user name. |
+| `@Password` | EasyVista password. Encrypted global properties are supported. |
+| `@Company` | EasyVista company identifier used in the URL path. |
+
+**Endpoint values to update:**
+
+| Field | Replace with |
+|-------|--------------|
+| URL host | The host of the EasyVista API for your tenant if it is not `uap.easyvista.com`. |
+
+```json
 {
   "templateid" : "EASYVISTA",
   "steps" : [ {
@@ -262,9 +388,29 @@ This section contains various job templates that can be used when working with t
   "properties" : [ ]
 }
 ```
-## Get using Windows Authentication to IIS
+## 5. GET with Windows Authentication (NTLM)
 
-```
+Single-step `GET` request that authenticates against an IIS endpoint using NTLM. The connector detects `Authorization: NTLM` and uses `@User`, `@Password`, and `@Domain` to build the credentials.
+
+**Template ID:** *(none)*
+
+**Variables to fill in:**
+
+| Variable | Description |
+|----------|-------------|
+| `@User` | Windows user name. |
+| `@Password` | Windows password. Encrypted global properties are supported. |
+| `@Domain` | Windows domain. |
+| `@User1` | Additional credential slot included in the template. Replace or remove if unused. |
+| `@Password1` | Additional credential slot included in the template. Replace or remove if unused. |
+
+**Endpoint values to update:**
+
+| Field | Replace with |
+|-------|--------------|
+| URL `10.1.0.4` | The address of your IIS endpoint. |
+
+```json
 {
   "templateid" : null,
   "steps" : [ {
@@ -310,9 +456,29 @@ This section contains various job templates that can be used when working with t
   "properties" : [ ]
 }
 ```
-## Get using Certificate
+## 6. GET with client certificate
 
-```
+Single-step `GET` request authenticated with a PKCS12 client certificate. The connector detects `Authorization: CERT` and loads the certificate from the keystore named in `@CertStore`.
+
+For instructions on creating the keystore from a `.p12` client key, see [Operation > Create a keystore](./operation.md#create-a-keystore).
+
+**Template ID:** `certifcate`
+
+**Variables to fill in:**
+
+| Variable | Description |
+|----------|-------------|
+| `@CertStore` | Full path to the keystore (for example, `c:\wsconnector\store\test.pkcs12`). |
+| `@CertStorePwd` | Keystore password. Encrypted global properties are supported. |
+| `@CertStoreType` | Keystore format. Currently only `PKCS12` is supported. |
+
+**Endpoint values to update:**
+
+| Field | Replace with |
+|-------|--------------|
+| URL | The endpoint that requires the client certificate (default `https://client.badssl.com` is a public test endpoint). |
+
+```json
 {
   "templateid" : "certifcate",
   "steps" : [ {
@@ -352,9 +518,32 @@ This section contains various job templates that can be used when working with t
   "properties" : [ ]
 }
 ``` 
-## WebServices VisualCron Embedded Script Definitions
-The following definition contains the Embedded Script WebServices-vcon-vars 
-```
+## 7. VisualCron Embedded Script definitions
+
+These templates are used when defining Webservices Connector jobs as **OpCon Embedded Scripts** that launch and monitor VisualCron jobs through the VisualCron REST API. Both definitions follow the same five-step sequence: authenticate, look up the job ID, run the job, poll status, and read the exit code.
+
+For background, see [Operation > Webservices jobs as Embedded Scripts](./operation.md#webservices-jobs-as-embedded-scripts) and [Example 11 — VisualCron RPA](./example-job-definitions.md#11-start-and-monitor-a-visualcron-job-rpa).
+
+**Template ID:** *(none)*
+
+**Required Environment Variables:**
+
+| Variable | Description |
+|----------|-------------|
+| `@Url` | VisualCron REST API host (for example, `localhost:8001`). |
+| `@User` | VisualCron user. |
+| `@Password` | VisualCron password. |
+| `@Jobname` | Name of the VisualCron job to launch. |
+| `@Variables` | (vars template only) VisualCron job variable values, formatted as `varName1=value\|varName2=value`. |
+
+Choose the variant that matches your need:
+
+<Tabs groupId="vcron-template" queryString>
+  <TabItem value="vars" label="WebServices-vcron-vars (with variables)" default>
+
+Passes VisualCron job variable values as part of the launch request via the `variables=@Variables` query string.
+
+```json
 {
   "templateid" : null,
   "steps" : [ {
@@ -480,8 +669,12 @@ The following definition contains the Embedded Script WebServices-vcon-vars
   "properties" : [ ]
 }
 ```
-The following definition contains the Embedded Script WebServices-vcon-no-vars 
-```
+  </TabItem>
+  <TabItem value="no-vars" label="WebServices-vcron-no-vars (no variables)">
+
+Launches the VisualCron job without passing any job variables.
+
+```json
 {
   "templateid" : null,
   "steps" : [ {
@@ -607,9 +800,50 @@ The following definition contains the Embedded Script WebServices-vcon-no-vars
   "properties" : [ ]
 }
 ```
-## Kubernetes yml File
-The following is a Kubernetes yaml file that can be used to deploy an OpCon environment within a Kubernetes cluster. The deployment consists of 3 containers (OpCon, Deploy (Impex2), Webservices). The environment uses Azure-SQL for the OpCon database.  
-```
+
+  </TabItem>
+</Tabs>
+
+## 8. Kubernetes deployment (OpCon + Deploy + Webservices)
+
+A complete Kubernetes deployment yaml that deploys three pods — OpCon, Deploy (Impex2), and the Webservices Connector — backed by Azure SQL Database for the OpCon database.
+
+### Components deployed
+
+| Component | Image | Purpose |
+|-----------|-------|---------|
+| OpCon | `smatechnologies/opcon-server:latest` | OpCon server (REST API on port `9010`). |
+| Deploy (Impex2) | `smatechnologies/deploy-impex2:latest` | OpCon Deploy / ImpEx2 service (web port `9011`). |
+| Webservices Connector | `smatechnologies/connector-webservices:latest` | The connector itself (work port `3100`, JORS port `3110`). |
+
+### Prerequisites
+
+- An Azure SQL database created before deployment.
+- An OpCon license value (replaces the `LICENSE` placeholder in the OpCon `ConfigMap`).
+- A `kubectl` context that targets the destination cluster.
+
+### Placeholders to replace before applying
+
+| Placeholder | Where it appears | Replace with |
+|-------------|------------------|--------------|
+| `saPassword` | `uat-dbpasswords` Secret | The SA-equivalent password for the database. |
+| `dbPassword` | `uat-dbpasswords` Secret | The database account password used by OpCon. |
+| `sqlAdminPassword` | `uat-dbpasswords` Secret | The SQL admin password. |
+| `dbPasswordEncrypted` | `uat-dbpasswords` Secret | The OpCon-encrypted form of the database password (used by Deploy). |
+| `LICENSE` | `uat-opconenv` ConfigMap | Your generated OpCon `0.lic` value. |
+| `DB_SERVER_NAME` | `uat-opconenv` ConfigMap and `uat-impexenv` ConfigMap (`opcon.server.name`) | Your Azure SQL server hostname. |
+| `DATABASE_NAME` | `uat-opconenv` ConfigMap (and `opcon.db.name` in `uat-impexenv`) | Your OpCon database name. |
+| `DB_USER_NAME` / `SQL_ADMIN_USER` | `uat-opconenv` ConfigMap | Database user names. |
+| `opcon.db.user` | `uat-impexenv` ConfigMap | The Deploy database user. |
+| `TZ`, `LANG` | Both ConfigMaps | Adjust to your timezone and locale. |
+
+:::caution Replace placeholder passwords before applying
+The `Secret` block contains literal `"password"` placeholder strings. Do not apply the manifest until you replace each value with a real credential and review whether to use Kubernetes secret management appropriate for your environment.
+:::
+
+### Manifest
+
+```yaml
 # 
 # full OpCon deployment for Kubernetes
 # includes opcon, deploy and webservices PODs
@@ -870,3 +1104,27 @@ spec:
     app: uat-wsservices
 
 ```
+
+## FAQs
+
+**How do I import a template?**
+Select **Import Template** in the **Web Services** job sub-type and browse to the template file. The template values populate the **Global Values** and **Steps** tabs of the job definition. Variable values stored as `??????` must be replaced with values for your environment.
+
+**How do I export a template I created?**
+Once a job definition is complete, select **Export Template**. The connector saves the definition as a JSON file. Variable and Environment Variable values are written as `??????` to prevent the inadvertent export of sensitive data.
+
+**Where can I find additional templates?**
+Templates for various integrations can be found in the SMA Technologies Innovation Lab on GitHub. Project names follow the pattern *name*`-webservicestemplate`.
+
+**What does the `templateid` field do?**
+`templateid` is a free-form identifier you can use to recognize the source of an imported template. It does not affect connector behavior.
+
+## Glossary
+
+| Term | Definition |
+|------|------------|
+| Template | A JSON-formatted SMAWSConnector job definition that can be imported into the **Web Services** job sub-type. |
+| Import Template | A button in the **Web Services** job sub-type that loads a template into the job definition fields. |
+| Export Template | A button in the **Web Services** job sub-type that saves the current job definition as a template, replacing sensitive values with `??????`. |
+| `??????` | Placeholder used in exported templates for variable and Environment Variable values, preventing the inadvertent export of sensitive data. |
+| Innovation Lab | The SMA Technologies GitHub organization where additional templates are published, with project names ending in `-webservicestemplate`. |

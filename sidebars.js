@@ -1,11 +1,11 @@
 module.exports = {
   mySidebar: [
-    'index',
+    'overview',
+    'release-notes',
     'installation',
     'operation',
     'defining-jobs',
     'example-job-definitions',
     'templates',
-    'release-notes',
   ],
 };

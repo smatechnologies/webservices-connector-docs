@@ -1,589 +1,637 @@
-# Example Job Definitions
-This sections provides sample definitions showing the various capabiities of teh Webservices connector.
+---
+sidebar_label: 'Example job definitions'
+title: Example Webservices Connector job definitions
+description: "Sample job definitions showing token authentication, polling, OAuth2, Basic, NTLM, certificate authentication, file upload, SOAP, and VisualCron RPA scenarios."
+tags:
+  - Reference
+  - Automation Engineer
+  - Connectors
+---
 
-## Using Token Authentication (multiple Steps)
-Update the value of a global property in the OpCon system. 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
-The OpCon system uses token authentication and the first step is to obtain a valid token from the OpCon system that will be used for the remaining steps. Subsequent steps will retrieve the information about a global property and update the contents of the property. 
+# Example job definitions
 
-In the **Variables** section of **Global Values** tab, enter the @User and @Password variables that will provide the user and password information used during authentication request (the password can be an encrypted global property). Enter the name of the global property using the @GlobalProperty variable. To increase portability when sharing templates, enter the web server address using the @Url variable.
+## What is it?
 
-Variable Name   | Variable Value
---------------- | -----------
-@Url            | SERVER1:9010
-@User           | user
-@Password       | [[user_pwd]]
-@GlobalProperty | PROPTEST
+This page provides sample Webservices Connector job definitions showing common capabilities of the connector. Each example covers the variables to define on the **Global Values** tab and the steps to define on the **Steps** tab.
 
-In the **Step** tab, enter the following:
+For a reference to all the fields shown in these examples, see [Defining jobs](./defining-jobs.md).
 
+## Choose an example
+
+| # | Example | What it demonstrates |
+|---|---------|----------------------|
+| 1 | [Token authentication (multi-step)](#1-token-authentication-multi-step) | Acquire a token, look up a property ID, update the property. |
+| 2 | [Poll a long-running operation](#2-poll-a-long-running-operation) | Submit a schedule build and poll the build status. |
+| 3 | [OAuth2 with x-www-form-urlencoded](#3-oauth2-with-x-www-form-urlencoded) | Acquire an OAuth2 token from Azure AD. |
+| 4 | [Basic Mode authentication](#4-basic-mode-authentication) | Send a request with HTTP Basic auth. |
+| 5 | [Use Environment Variables](#5-use-environment-variables) | Pass an OpCon property containing a Windows path through the agent environment. |
+| 6 | [Save a returned value into an OpCon property](#6-save-a-returned-value-into-an-opcon-property) | Use Property Update on Completion to write a response value back to OpCon. |
+| 7 | [Windows Authentication (NTLM)](#7-windows-authentication-ntlm) | Authenticate to IIS using NTLM. |
+| 8 | [Client certificate authentication](#8-client-certificate-authentication) | Authenticate using a PKCS12 keystore. |
+| 9 | [File upload](#9-file-upload) | Upload a file using `multipart/form-data`. |
+| 10 | [SOAP Webservices](#10-soap-webservices) | Submit a SOAP envelope and extract a value from the response. |
+| 11 | [Start and monitor a VisualCron job (RPA)](#11-start-and-monitor-a-visualcron-job-rpa) | Use the VisualCron REST API to launch and track a VisualCron job. |
+
+:::tip Reading these examples
+Each step in an example shows only the fields you need to set. Fields not shown — such as **Proxy Server** and **TLS** — keep their defaults. The connector uses TLS automatically when the URL begins with `https`.
+:::
+
+## 1. Token authentication (multi-step)
+
+**Goal:** update the value of an OpCon global property using token authentication.
+
+The OpCon REST API uses token authentication. The first step obtains a token, the second step looks up the property ID, and the third step updates the property value.
+
+### Variables (Global Values tab)
+
+| Variable | Value |
+|----------|-------|
+| `@Url` | `SERVER1:9010` |
+| `@User` | `user` |
+| `@Password` | `[[user_pwd]]` |
+| `@GlobalProperty` | `PROPTEST` |
+
+The password is held in an encrypted global property (`[[user_pwd]]`).
+
+### Step 1 — Acquire a token
+
+| Field | Value |
+|-------|-------|
+| **Function** | `POST` |
+| **URL** | `https://@Url/api/tokens` |
+| **Request Content-Type** | `application/json` |
+| **Response Content-Type** | `application/json` |
+| **Completion Code** | `200` |
+
+**Request body:**
+
+```json
+{
+    "id":null,
+    "user":
+    {
+        "id":-1,
+        "loginName":"@User",
+        "password":"@Password"
+    },
+    "tokenType":
+    {
+        "id":null,
+        "type":"User"
+    }
+}
 ```
-1.	Step 1 (Enter data in the (+) definition).
-    The first Step function is a POST request to obtain an authentication token.
-    a.	Select the POST function.
-    b.	Enter the full URL https://@Url/api/tokens (in this case the https indicates that the connector will use TLS when communicating with the web server).
-    c.  If a proxy server is required enter the URL of the proxy server.
-    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
-    e.	Select the Request tab.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Body tab.
-        iii. In the message body, enter the JSON data to be submitted as part of the POST request using the @User and @Password global variables. While processing the request, the 
-             connector will substitute the variable names in the JSON definition with the required values.
 
-            {
-                "id":null,
-                "user":
-                {
-                    "id":-1,
-                    "loginName":"@User",
-                    "password":"@Password"
-                },
-                "tokenType":
-                {
-                    "id":null,
-                    "type":"User"
-                }
-            } 
- 
-    f.	Select the Response tab.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Response Variable Management tab.
-        iii. The request will return the authentication token and we need to extract the value and place it in a variable that will be used by the subsequent steps. In the Attribute
-             section add @Token into the Name field and $.id into the value field which will extract the first id attribute returned in the JSON data and save it in the variable @Token. 
-             The $.id is a JSONPath definition indicating the attribute value to extract from the JSON data. The ($) indicates start from the root of the JSON structure and the (.id) 
-             indicates get the value of the first id attribute in the JSON data.
-        iv.	 Select the Step Completion tab.
-        v.	 Set the Step completion code to 200.
-    g.	Press the Add Step button.
-2.	Step 2 (Select the (+) definition).
-    The second Step function is a GET request to obtain the global property defined in the @GlobalProperty variable.
-    a.	Select the GET function.
-    b.	Enter the full URL https://@Url/api/globalproperties?name=@GlobalProperty
-    c.  If a proxy server is required enter the URL of the proxy server.
-    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
-    e.	Select the Request tab
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Header tab.
-        iii. In the Attributes section indicate the authentication token. The authorization value is defined by the web server and the definition for an OpCon system is ‘Token <token 
-             value>’. Enter an attribute consisting of Authorization into the Name field and Token @Token into the Value field. 
-        iv.	 The @Token variable value extracted during the previous step (Step1) will be inserted into header attributes by the connector.
-    f.	Select the Response tab
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Response Variable tab.
-        iii. The request will return the property id and we need to extract the value and place it in a variable that will be used by the subsequent steps. In the Attribute section enter a 
-             value of @Propertyid into the Name field and $[0].id into the Value field. In this case, the returned JSON data consists of array containing global property definitions. The
-             ([0]) indicates that the first record of the array is required and the (.id) indicates that the value of the first id attribute is required. 
-        iv.	 Select the Step Completion tab.
-        v.	 Set the Step completion code to 200
-    g.	 Press the Add Step button.
-3.	Step 3 (Select the (+) definition).
-    The third Step function is a PUT request to update the global property defined in the @GlobalProperty variable.
-    a.	Select the PUT function.
-    b.	Enter the full URL https://@Url/api/globalproperties/@Propertyid
-        The @Propertyid will be replaced in the URL with the value of the @Propertyid variable value extracted during the previous step (Step2) the connector. This shows how information
-        extracted from a previous step can be used when creating URLs.
-    c.  If a proxy server is required enter the URL of the proxy server.
-    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).    
-    e.	Select the Request tab
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Header tab.
-        iii. In the Attributes section indicate the authentication token. The authorization value is defined by the web server and the definition for an OpCon system is ‘Token <token 
-             value>’. Enter an attribute consisting of Authorization into the Name field and Token @Token into the Value field. The @Token variable value extracted during the previous step
-             (Step1) will be inserted into the attribute value by the connector. 
-        iv.	Select the Body tab.
-        v.	In the message body, enter the JSON data to be submitted as part of the PUT request to update the property value.
+**Response variable:**
 
-            {
-                "id":"@Propertyid",
-                "name":"@GlobalProperty",
-                "value":"wsrest 1234 test value from UNIX 2"
-            }
+| Name | JSONPath |
+|------|----------|
+| `@Token` | `$.id` |
 
-            Notice that the @Propertyid is also replaced in the JSON data by the Connector as the JSON data requires the id of the property that is being updated. The property name is 
-            taken from the @GlobalProperty variable.
-    f.	Select the Response tab.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Step Completion TAB.
-        iii. Set the Step completion code to 200
-    g.	Press the Add Step button.
+`$.id` extracts the value of the first `id` attribute at the JSON root and stores it in `@Token` for use by later steps.
 
+### Step 2 — Look up the global property ID
+
+| Field | Value |
+|-------|-------|
+| **Function** | `GET` |
+| **URL** | `https://@Url/api/globalproperties?name=@GlobalProperty` |
+| **Request Content-Type** | `application/json` |
+| **Response Content-Type** | `application/json` |
+| **Completion Code** | `200` |
+
+**Request header:**
+
+| Attribute Name | Attribute Value |
+|----------------|-----------------|
+| `Authorization` | `Token @Token` |
+
+The connector substitutes `@Token` with the value extracted in Step 1.
+
+**Response variable:**
+
+| Name | JSONPath |
+|------|----------|
+| `@Propertyid` | `$[0].id` |
+
+The response is an array of property definitions. `$[0].id` selects the `id` of the first array element.
+
+### Step 3 — Update the global property
+
+| Field | Value |
+|-------|-------|
+| **Function** | `PUT` |
+| **URL** | `https://@Url/api/globalproperties/@Propertyid` |
+| **Request Content-Type** | `application/json` |
+| **Response Content-Type** | `application/json` |
+| **Completion Code** | `200` |
+
+The `@Propertyid` extracted in Step 2 is substituted into the URL.
+
+**Request header:**
+
+| Attribute Name | Attribute Value |
+|----------------|-----------------|
+| `Authorization` | `Token @Token` |
+
+**Request body:**
+
+```json
+{
+    "id":"@Propertyid",
+    "name":"@GlobalProperty",
+    "value":"wsrest 1234 test value from UNIX 2"
+}
 ```
-## Using Poll capability to track execution (multiple Steps)
-Perform a schedule build on the OpCon system tracking to see that the Schedule Build completes successfully. 
 
-The OpCon system uses token authentication and the first step is to obtain a valid token that will be used for the remaining steps.
+`@Propertyid` is also substituted in the body because the OpCon REST API expects the property ID in the payload when updating.
 
-In the **Variables** section of **Global Values** tab, enter the @User and @Password variables that will provide the user and password information used during authentication (the password can be an encrypted global property). Enter the variable @ScheduleName that contains the name of the schedule to build and the variable @ScheduleDate containing the date to build the schedule on (format should be yyyy-mm-dd). To increase portability when sharing templates, enter the web server address using the @Url variable.
- 
-Variable Name   | Variable Value
---------------- | -----------
-@Url            | SERVER1:9010
-@User           | user
-@Password       | [[user_pwd]]
-@ScheduleName   | SCHED001
-@ScheduleDate   | [[$SCHEDULE DATE-YYYY-MM-DD]]
+## 2. Poll a long-running operation
 
-In the **Step** tab, enter the following:
+**Goal:** trigger an OpCon schedule build and poll the build status until it succeeds or fails.
 
+### Variables (Global Values tab)
+
+| Variable | Value |
+|----------|-------|
+| `@Url` | `SERVER1:9010` |
+| `@User` | `user` |
+| `@Password` | `[[user_pwd]]` |
+| `@ScheduleName` | `SCHED001` |
+| `@ScheduleDate` | `[[$SCHEDULE DATE-YYYY-MM-DD]]` |
+
+:::note Date format
+`@ScheduleDate` must be in `yyyy-mm-dd` format. Use a `$SCHEDULE DATE` property to supply this.
+:::
+
+### Step 1 — Acquire a token
+
+Same as [Step 1 of Example 1](#step-1--acquire-a-token).
+
+### Step 2 — Submit the schedule build
+
+| Field | Value |
+|-------|-------|
+| **Function** | `POST` |
+| **URL** | `https://@Url/api/schedulebuilds` |
+| **Request Content-Type** | `application/json` |
+| **Response Content-Type** | `application/json` |
+| **Completion Code** | `201` |
+
+**Request header:**
+
+| Attribute Name | Attribute Value |
+|----------------|-----------------|
+| `Authorization` | `Token @Token` |
+
+**Request body:**
+
+```json
+{
+    "schedules":[
+        {"id":null,"name":"@ScheduleName"}
+    ],
+    "id":null,
+    "expiryTime":null,
+    "dates":[
+        "@ScheduleDate"
+    ],
+    "logFile":null,
+    "overwrite":true,
+    "hold":true
+}
 ```
-1.	Step 1 (Enter data in the (+) definition).
-    The first Step function is a POST request to obtain an authentication token.
-    a.	Select the POST function.
-    b.	Enter the full URL https://@Url/api/tokens (in this case the https indicates that the connector will use TLS when communicating with the web server).
-    c.  If a proxy server is required enter the URL of the proxy server.
-    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
-    d.	Select the Request tab.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Body tab.
-        iii. In the message body, enter the JSON data to be submitted as part of the POST request using the @User and @Password global variables. While processing the request, the
-             connector will substitute the variable names in the JSON definition with the required values.
 
-            {
-                "id":null,
-                "user":
-                {
-                    "id":-1,
-                    "loginName":"@User",
-                    "password":"@Password"
-                },
-                "tokenType":
-                {
-                    "id":null,
-                    "type":"User"
-                }
-            } 
-    e.	Select the Response tab.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Response Variable Management tab. 
-        iii. The request will return the authentication token and we need to extract the value and place it in a variable that will be used by the subsequent steps. In the Attribute 
-             section add @Token into the Name field and $.id into the value field which will extract the first id attribute returned in the JSON data and save it in the variable @Token. 
-             The $.id is a JSONPath definition indicating the attribute value to extract from the JSON data. The ($) indicates start from the root of the JSON structure and the (.id) 
-             indicates get the value of the first id attribute in the JSON data.
-        iv.	 Select the Step Completion tab.
-        v.	 Set the Step completion code to 200.
-    f.	Press the Add Step button.
-2.	Step 2 (Select the (+) definition).
-    The second Step second Step function is a POST request to perform a schedule build.
-    a.	Select the POST function.
-    b.	Enter the full URL https://@Url/api/schedulebuilds
-    c.  If a proxy server is required enter the URL of the proxy server.
-    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
-    e.	Select the Request tab.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Header tab.
-        iii. In the Attributes section indicate the authentication token. The authorization value is defined by the web server and the definition for an OpCon system is ‘Token <token 
-             value>’. Enter an attribute consisting of Authorization into the Name field and Token @Token into the Value field. The @Token variable value extracted during the previous step 
-             (Step1) will be inserted into the attribute value by the connector. 
-        iv.	Select the Body tab.
-        v.	In the message body, enter the JSON data to be submitted as part of the POST request using the @ScheduleName and @ScheduleDate variables. While processing the request, the 
-            connector will substitute the variable names in the JSON definition with the required values. 
+**Response variable:**
 
-            {
-                "schedules":[
-                    {"id":null,"name":"@ScheduleName"}
-                ],
-                "id":null,
-                "expiryTime":null,
-                "dates":[
-                    "@ScheduleDate"
-                ],
-                "logFile":null,
-                "overwrite":true,
-                "hold":true
-            }
-    f.	Select the Response tab.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Response Variable Management tab.
-        iii. The request will return information about the schedule build and we need the schedule build id to determine if the build completed successfully in subsequent steps. In the 
-             Attribute section add @Buildid into the Name field and $.id into the value field which will extract the first id attribute returned in the JSON data and save it in the 
-             variable @Buildid. The $.id is a JSONPath definition indicating the attribute value to extract from the JSON data. The ($) indicates start from the root of the JSON structure 
-             and the (.id) indicates get the value of the first id attribute in the JSON data.
-        iv.	 Select the Step Completion tab.
-        v.	 Set the Step completion code to 201.
-    g.	Press the Add Step button.
-3.	Step 3 (Select the (+) definition).
-    The third Step function is a GET request to determine the status of the build request. A poll is performed until a completion result is determined by checking the contents of the
-    returned JSON data for a specific attribute value
-    a.	Select the GET function.
-    b.	Enter the full URL https://@Url/api/schedulebuilds/@Buildid
-        The @Buildid will be replaced in the URL with the value of the @Buildid variable by the connector. This shows how information extracted from a previous step can be used when 
-        creating URLs.
-    c.  If a proxy server is required enter the URL of the proxy server.
-    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
-    e.	Select the Request tab.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Header tab.
-        iii. In the Attributes section indicate the authentication token. The authorization value is defined by the web server and the definition for an OpCon system is ‘Token <token 
-             value>’. Enter an attribute consisting of Authorization into the Name field and Token @Token into the Value field. The @Token variable value extracted during the previous step 
-             (Step1) will be inserted into the attribute value by the connector. 
-        iv.	 Select the Body tab.
-    f.	Select the Response tab.
-        The GET request will poll the server several times to get the completion status of the build request. The Check Returned Data and Poll values must be completed.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Step Completion tab.
-        iii. The Good Finish field define the values associated with a successful build. Enter success/Completed meaning either a value of success or Completed will indicate a successful 
-             build.
-        iv.	 The Bad Finish field define the values associated with an unsuccessful build. Enter Failed meaning a value of Failed will indicate an unsuccessful build.
-        v.	 Set the Attribute To Check field to the attribute that contains the value to check using JSONPath format. $[0].message indicates that the attribute message of the first record 
-             in the array should be checked.
-        vi.	 Select the Poll indicator and enter the poll delay and interval values in seconds. The delay value is how long to wait before the first check and the interval value is how 
-             long to wait for subsequent checks.
-        vii. By setting the Max Time to 5 minutes, the connector will check for a positive response for 5 minutes before returning a 408 (timeout error).
-        viii. A return code of 460 will be sent if the Bad Finish value is received.
-    g.	Press the Add Step button.
+| Name | JSONPath |
+|------|----------|
+| `@Buildid` | `$.id` |
 
+### Step 3 — Poll the build status
+
+| Field | Value |
+|-------|-------|
+| **Function** | `GET` |
+| **URL** | `https://@Url/api/schedulebuilds/@Buildid` |
+| **Request Content-Type** | `application/json` |
+| **Response Content-Type** | `application/json` |
+
+**Request header:**
+
+| Attribute Name | Attribute Value |
+|----------------|-----------------|
+| `Authorization` | `Token @Token` |
+
+**Step Completion (returned-data check + polling):**
+
+| Field | Value |
+|-------|-------|
+| **Attribute to Check** | `$[0].message` |
+| **Good Finish** | `success/Completed` |
+| **Bad Finish** | `Failed` |
+| **Poll** | enabled |
+| **Delay** | seconds before the first check |
+| **Interval** | seconds between subsequent checks |
+| **Max Time** | `5` minutes |
+
+| Outcome | Connector return code |
+|---------|----------------------|
+| Good Finish matched | `200` |
+| Bad Finish matched | `460` |
+| Max Time expired | `408` |
+
+## 3. OAuth2 with x-www-form-urlencoded
+
+**Goal:** acquire an OAuth2 access token from Azure Active Directory.
+
+The body is sent as `name=value` pairs separated by an ampersand (`&`).
+
+### Variables (Global Values tab)
+
+| Variable | Value |
+|----------|-------|
+| `@Url` | `login.microsoftonline.com` |
+| `@Tenantid` | `[[AZURE_TENANT_ID]]` |
+| `@Clientid` | `[[AZURE_CLIENT_ID]]` |
+| `@Key` | `[[AZURE_KEY]]` |
+| `@Subscription` | `[[AZURE_SUBSCRIPTION]]` |
+
+:::caution
+All OAuth2 credentials should be held in encrypted global properties.
+:::
+
+### Step 1 — Acquire an OAuth2 token
+
+| Field | Value |
+|-------|-------|
+| **Function** | `POST` |
+| **URL** | `https://@Url/@Tenantid/oauth2/token` |
+| **Request Content-Type** | `application/x-www-form-urlencoded` |
+| **Response Content-Type** | `application/json` |
+| **Completion Code** | `200` |
+
+**Request body:**
+
+```text
+grant_type=client_credentials&client_id=@Clientid&client_secret=@Key&resource=https://management.azure.com/
 ```
-## OAuth2 Authentication using x-www-form-urlencoded
-Perform an OAuth2 authentication using x-www-form-urlencoded Content Type. When defining the data in the request body the values are entered as name=value pairs separated by an amphisan. 
 
-In the **Variables** section of **Global Values** tab, enter the @Tenantid, @Clientid, @Key and @Subscription variables that will provide the information used during authentication (these values should all be placed in encrypted properties). To increase portability when sharing templates, enter the web server address using the @Url variable.
+**Response variable:**
 
-Variable Name   | Variable Value
---------------- | -----------
-@Url            | login.microsoftonline.com
-@Tenantid       | [[AZURE_TENANT_ID]]
-@Clientid       | [[AZURE_CLIENT_ID]]
-@Key            | [[AZURE_KEY]]
-@Subscription   | [[AZURE_SUBSCRIPTION]]
+| Name | JSONPath |
+|------|----------|
+| `@Token` | `$.access_token` |
 
-In the **Step** tab, enter the following:
+## 4. Basic Mode authentication
 
+**Goal:** send a request authenticated with HTTP Basic.
+
+The connector detects `Authorization: Basic` and Base64-encodes the `@User:@Password` string into the header automatically.
+
+### Variables (Global Values tab)
+
+| Variable | Value |
+|----------|-------|
+| `@Url` | `easyredmine.com` |
+| `@User` | `USER001` |
+| `@Password` | `[[USER001_PWD]]` |
+
+### Step 1 — Send the authenticated request
+
+| Field | Value |
+|-------|-------|
+| **Function** | `GET` |
+| **URL** | `https://@Url/issues/182.xml` |
+| **Request Content-Type** | `application/xml` |
+| **Response Content-Type** | `application/json` |
+| **Completion Code** | `200` |
+
+**Request header:**
+
+| Attribute Name | Attribute Value |
+|----------------|-----------------|
+| `Authorization` | `Basic` |
+
+## 5. Use Environment Variables
+
+**Goal:** use a body file whose path comes from an OpCon schedule instance property containing Windows path separators.
+
+OpCon resolves properties into the JSON job definition at run time without escaping backslashes — a value like `c:\production\main` would break JSON parsing. Passing the value as an Environment Variable bypasses the JSON definition entirely.
+
+For background, see [Operation > Environment Variables](./operation.md#environment-variables).
+
+### Variables (Global Values tab)
+
+| Variable | Value |
+|----------|-------|
+| `@Url` | `SERVER1:9010` |
+| `@User` | `user` |
+| `@Password` | `[[user_pwd]]` |
+
+### Environment Variables (Global Values tab)
+
+| Variable | Value |
+|----------|-------|
+| `@MAIN_PATH` | `[[SI.MAIN_PATH]]` |
+
+`SI.MAIN_PATH` is a schedule instance property containing the directory where the body file lives (for example, `c:\production\main`).
+
+### Step 1 — POST a body loaded from a file
+
+| Field | Value |
+|-------|-------|
+| **Function** | `POST` |
+| **URL** | `https://@Url/api/tokens` |
+| **Request Content-Type** | `application/json` |
+| **Body source** | **File Name** field |
+| **File Name** | `@MAIN_PATH\wsfiles\login.json` |
+| **Response Content-Type** | `application/json` |
+
+**File contents (`login.json`):**
+
+```json
+{
+    "id":null,
+    "user":
+    {
+        "id":-1,
+        "loginName":"@User",
+        "password":"@Password"
+    },
+    "tokenType":
+    {
+        "id":null,
+        "type":"User"
+    }
+}
 ```
-1.	Step 1 (Enter data in the (+) definition).
-    The first Step function is a POST request to obtain an authentication token.
-    a.	Select the POST function.
-    b.	Enter the full URL https://@Url/@Tenantid/oauth2/token (in this case the https indicates that the connector will use TLS when communicating with the web server).
-    c.  If a proxy server is required enter the URL of the proxy server.
-    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
-    e.	Select the Request tab.
-        i.	 Select application/x-www-form-urlencoded from the Content Type drop-down list.
-        ii.	 Select the Body tab.
-        iii. In the message body, enter the data to be submitted as part of the POST request using the @Clientid and @Key global variables. The values are entered in name=value pairs using 
-             the amphisan (&) character as the delimiter. While processing the request, the connector will substitute the variable names in the data with the required values.
 
-            grant_type=client_credentials&client_id=@Clientid&client_secret=@Key&resource=https://management.azure.com/
-    f.	Select the Response tab.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Response Variable Management tab.
-        iii. The request will return the authentication token and we need to extract the value and place it in a variable that will be used by the subsequent steps. In the Attribute 
-             section add @Token into the Name field and $access_token into the value field which will extract the first id attribute returned in the JSON data and save it in the variable 
-             @Token. The $.iaccess_token is a JSONPath definition indicating the attribute value to extract from the JSON data. The ($) indicates start from the root of the JSON structure 
-             and the (.access_token) indicates get the value of the first access-token attribute in the JSON data. 
-        iv.	 Select the Step Completion TAB.
-        v.   Set the Step completion code to 200.
-    g.	Press the Add Step button.
- 
+**Response variable:**
+
+| Name | JSONPath |
+|------|----------|
+| `@Token` | `$.id` |
+
+## 6. Save a returned value into an OpCon property
+
+**Goal:** capture a value from the response and persist it into an OpCon schedule instance property when the job completes successfully.
+
+### Property Update on Completion (Global Values tab)
+
+| Property path | Source variable |
+|---------------|-----------------|
+| `SI.Version.[[$SCHEDULE DATE-YYYY-MM-DD]].SCHED001` | `@Version` |
+
+:::caution
+- The dot (`.`) is used as a field separator in property paths. Schedule and job names must not contain a dot.
+- Date values must be in `yyyy-mm-dd` format. Use a `$SCHEDULE DATE` property to supply this value.
+:::
+
+### Step 1 — Read the OpCon REST API version
+
+| Field | Value |
+|-------|-------|
+| **Function** | `GET` |
+| **URL** | `https://@Url/api/version` |
+| **Request Content-Type** | `application/json` |
+| **Response Content-Type** | `application/json` |
+| **Completion Code** | `200` |
+
+**Response variable:**
+
+| Name | JSONPath |
+|------|----------|
+| `@Version` | `$.opConRestApiProductVersion` |
+
+When the job completes successfully, the connector writes the value of `@Version` into the schedule instance property defined in **Property Update on Completion**.
+
+## 7. Windows Authentication (NTLM)
+
+**Goal:** authenticate to an IIS endpoint using Windows credentials.
+
+### Variables (Global Values tab)
+
+| Variable | Value |
+|----------|-------|
+| `@Url` | `OPCON01` |
+| `@User` | `USER001` |
+| `@Password` | `[[USER001_PWD]]` |
+| `@DOMAIN` | `OPCON001` |
+
+### Step 1 — Send the authenticated request
+
+| Field | Value |
+|-------|-------|
+| **Function** | `GET` |
+| **URL** | `https://@Url/version` |
+| **Request Content-Type** | `application/json` |
+| **Response Content-Type** | `application/json` |
+| **Completion Code** | `200` |
+
+**Request header:**
+
+| Attribute Name | Attribute Value |
+|----------------|-----------------|
+| `Authorization` | `NTLM` |
+
+The connector detects `NTLM` and uses `@User`, `@Password`, and `@Domain` to build the credentials.
+
+## 8. Client certificate authentication
+
+**Goal:** authenticate to a server that requires a client certificate.
+
+### Variables (Global Values tab)
+
+| Variable | Value |
+|----------|-------|
+| `@CertStore` | `c:\wsconnector\store\badssl.pkcs12` |
+| `@CertStorePwd` | `[[BADSSL_PWD]]` |
+| `@CertStoreType` | `PKCS12` |
+
+For instructions on creating the keystore from a `.p12` client key, see [Operation > Create a keystore](./operation.md#create-a-keystore).
+
+### Step 1 — Send the authenticated request
+
+| Field | Value |
+|-------|-------|
+| **Function** | `GET` |
+| **URL** | `https://client.badssl.com` |
+| **Request Content-Type** | `application/json` |
+| **Response Content-Type** | `application/json` |
+| **Completion Code** | `200` |
+
+**Request header:**
+
+| Attribute Name | Attribute Value |
+|----------------|-----------------|
+| `Authorization` | `CERT` |
+
+The connector detects `CERT` and loads the certificate from the keystore named in `@CertStore`.
+
+## 9. File upload
+
+**Goal:** upload a file to a web server using `multipart/form-data`.
+
+:::note File location
+The file must be present on the server where the connector is installed.
+:::
+
+### Step 1 — Upload the file
+
+| Field | Value |
+|-------|-------|
+| **Function** | `POST` |
+| **URL** | `http://httpbin.org/post` |
+| **Request Content-Type** | `multipart/form-data` |
+| **Body source** | **File Name** field |
+| **File Name** | full path of the file to upload |
+| **Record termination** | `CRLF` (Windows targets) or `LF` (Unix/Linux targets) |
+| **Response Content-Type** | `application/json` |
+| **Completion Code** | `200` |
+
+To submit additional form fields alongside the file, enter them in the **Message Body** as `name=value&name1=value1`.
+
+## 10. SOAP Webservices
+
+**Goal:** submit a SOAP envelope to a SOAP web service and extract a value from the response.
+
+A SOAP request requires:
+
+| Setting | Value |
+|---------|-------|
+| **Function** | `POST` |
+| **Header attribute** | `Message-Type=SOAP` |
+| **Request Content-Type** | `text/xml` |
+| **Response Content-Type** | `application/xml` |
+| **Body** | The complete SOAP envelope (`soap12:Envelope`) |
+
+:::tip Find the SOAP envelope shape
+Retrieve the WSDL by opening the service URL with `?wsdl` appended in a browser (for example, `https://www.w3schools.com/xml/tempconvert.asmx?wsdl`). The WSDL lists the supported endpoints.
+:::
+
+### Step 1 — Convert Celsius to Fahrenheit
+
+| Field | Value |
+|-------|-------|
+| **Function** | `POST` |
+| **URL** | `https://www.w3schools.com/xml/tempconvert.asmx` |
+| **Request Content-Type** | `text/xml` |
+| **Response Content-Type** | `application/xml` |
+| **Completion Code** | `200` |
+
+**Request header:**
+
+| Attribute Name | Attribute Value |
+|----------------|-----------------|
+| `Message-Type` | `SOAP` |
+
+**Request body (SOAP envelope):**
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
+  <soap12:Body>
+    <CelsiusToFahrenheit xmlns="https://www.w3schools.com/xml/">
+      <Celsius>50</Celsius>
+    </CelsiusToFahrenheit>
+  </soap12:Body>
+</soap12:Envelope>
 ```
-## Basic Mode Authentication
-Execute a request on a Web Server using Basic authentication.
 
-In the **Variables** section of the **Global variables** tab,  enter the @User and @Password variables that will provide the information used during authentication (the password value should be placed in an encrypted property). To increase portability when sharing templates, enter the web server address using the @Url variable.
- 
-Variable Name   | Variable Value
---------------- | -----------
-@Url            | easyredmine.com
-@User           | USER001
-@Password       | [[USER001_PWD]]
+**Response variable:**
 
-In the **Step** tab, enter the following:
+| Name | XPath |
+|------|-------|
+| `@Fahrenheit` | `//CelsiusToFahrenheitResponse/CelsiusToFahrenheitResult/text()` |
 
-```
-1.	Step 1 (Enter data in the (+) definition).
-    The first Step function is a GET request to retrieve information from the Web Server.
-    a.	Select the GET function.
-    b.	Enter the full URL https://@Url/issues/182.xml (in this case the https indicates that the connector will use TLS when communicating with the web server).
-    c.  If a proxy server is required enter the URL of the proxy server.
-    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
-    e.	Select the Request tab.
-        i.	 Select application/xml from the Content Type drop-down list.
-        ii.	 Select the Header TAB.
-        iii. In the Attributes section indicate basic authentication will be used. Enter an attribute consisting of Authorization into the Name field and Basic into the Value field. The 
-        Connector will detect that Basic authentication is required and perform the required Base64 encoding of the ‘@User:@Password’ string and append this to the header attribute (Basic 
-        @User:@Password). 
-    f.	Select the Response tab
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Step Completion tab.
-        iii. Set the Step completion code to 200.
-    g.	Press the Add Step button.
- 
-```
-## Using Environment Variables 
-Execute a request on a Web Server using Environment Variables. 
+## 11. Start and monitor a VisualCron job (RPA)
 
-When passing information from OpCon to the connector, the task definition is stored in JSON format in the CommandLine field in a Windows definition and in the Parameters field in a UNIX definition. During task definition, the stored JSON definition is created by a JSON parser meaning all values are properly escaped. When OpCon properties are contained within the created JSON definition, these values are only resolved at task start time. This means that it is possible for unescaped values to be inserted into the JSON definition causing json parsing problems in the connector. 
+**Goal:** use the VisualCron REST API to authenticate, start a job, monitor it to completion, and optionally retrieve a job variable value.
 
-If such a case exists, Environment Variables should be used to pass the OpCon property values as Environment Variables are not passed to the connector as part of the JSON definition, but is separate fields and are loaded into the task execution environment by the agent. The connector checks for Environment Variables during start-up and loads these values into variables that can be used within defined steps. 
+A VisualCron job is similar to an OpCon sub-schedule and contains one or more tasks. The connector monitors the job — not individual tasks — for completion.
 
-In the **Variables** section of **Global Values** tab, enter the @User and @Password variables that will provide the user and password information used during authenticationTo increase portability when sharing templates, enter the web server address using the @Url variable.
- 
-Variable Name   | Variable Value
---------------- | -----------
-@Url            | SERVER1:9010
-@User           | user
-@Password       | [[user_pwd]]
+:::note VisualCron uses GET for everything
+The VisualCron REST API uses `GET` for all requests. Job parameters are passed as query-string arguments.
+:::
 
-In the **Environment Variables** section of **Global Values**, enter the **@MAIN_PATH** value which points to a schedule instance property associated with the schedule called SI.MAIN_PATH. The schedule instance property contains the directory where the required files can be found (i.e. c:\production\main). 
+### Recommended variables
 
-Variable Name   | Variable Value
---------------- | -----------
-@MAIN_PATH      | [[SI.MAIN_PATH]]
+Use Webservices variables to define the URL, user, password, and job name so the job is portable.
 
-In the **Step** tab, enter the following:
+| Variable | Purpose |
+|----------|---------|
+| `@Url` | VisualCron REST API host. |
+| `@User`, `@Password` | VisualCron credentials used to authenticate. |
+| `@Jobname` | Name of the VisualCron job to launch. |
+| `@Variables` | Optional. VisualCron job variable values, formatted as `varName1=value\|varName2=value`. |
 
-```
-1.	Step 1 (Enter data in the (+) definition).
-    The first Step function is a POST request to obtain an authentication token.
-    a.	Select the POST function.
-    b.	Enter the full URL https://@Url/api/tokens (in this case the https indicates that the connector will use TLS when communicating with the web server).
-    c.  If a proxy server is required enter the URL of the proxy server.
-    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
-    e.	Select the Request tab.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Body tab.
-        iii. In the File Name field enter the name of the full filename (@MAIN_PATH\wsfiles\login.json) that contains the login information using the Environment Variable name to provide 
-        the path information. While processing the request, the connector will substitute the variable names in the JSON definition with the required values.
-    f.	Select the Response tab.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Response Variable Management tab.
-        iii. The request will return the authentication token and we need to extract the value and place it in a variable that will be used by the subsequent steps. In the Attribute 
-             section add @Token into the Name field and $.id into the value field which will extract the first id attribute returned in the JSON data and save it in the variable @Token. 
-             The $.id is a JSONPath definition indicating the attribute value to extract from the JSON data. The ($) indicates start from the root of the JSON structure and the (.id) 
-             indicates get the value of the first id attribute in the JSON data.
-    g.	Press the Add Step button.
+### Step sequence
 
-            File contents:
-            {
-                "id":null,
-                "user":
-                {
-                    "id":-1,
-                    "loginName":"@User",
-                    "password":"@Password"
-                },
-                "tokenType":
-                {
-                    "id":null,
-                    "type":"User"
-                }
-            } 
+| # | Purpose | URL | Response variable |
+|---|---------|-----|-------------------|
+| 1 | Authenticate | `http://@Url/VisualCron/json/logon?username=@User&password=@Password&expire=3600` | `@Token` from `$.Token` |
+| 2 | Look up job ID | `http://@Url/VisualCron/json/Job/GetByName?token=@Token&name=@Jobname` | `@Jobid` from `$.Id` |
+| 3 | Start the job | `http://@Url/VisualCron/json/Job/Run?token=@Token&id=@Jobid&variables=@Variables` (or omit the `variables=` parameter) | — |
+| 4 | Poll the job status | `http://@Url/VisualCron/json/Job/Get?token=@Token&id=@Jobid` | Check `$.Stats.Status` (Good Finish `1`, Bad Finish `2`) |
+| 5 | Read the exit code | `http://@Url/VisualCron/json/Job/Get?token=@Token&id=@Jobid` | Check `$.Stats.ExitCode` (Good Finish `0`) |
+| 6 | (Optional) Read a job variable | `http://@Url/VisualCron/json/JobVariableValue/Get?token=@Token&jobId=@Jobid&id=jobvarname` | Use `TEXTSTRING` |
 
-```
-## Saving variable value in OpCon property 
-Execute a request on a Web Server and save a returned value in an OpCon Schedule Instance property. 
+### VisualCron status codes
 
-When the tasks are completed, the variables values will be stored in OpCon properties according to the definitions in the **Property update on Completion** tab.
+The status returned in `$.Stats.Status` uses the following codes:
 
-In the **Update Property on Completion** section of **Global Values** tab, enter the full path to the SI property. Remember that the dot (.) is used as a field separator, so it is not possible to use a schedule or job name that has a period (.) within the name. The OpCon-API requires that the date has the yyyy-mm-dd syntax, so a special $SCHEDULE DATE property is defined.
+| Status | Meaning |
+|--------|---------|
+| `0` | Job is running. |
+| `1` | Job is waiting. In VisualCron, a job returns to the waiting state when it completes. |
+| `2` | Paused. |
 
-Variable Name                                      | Variable Value
--------------------------------------------------- | -----------
-SI.Version.[[$SCHEDULE DATE-YYYY-MM-DD]].SCHED001  | @Version
+### VisualCron exit codes
 
-In the **Step** tab, enter the following:
-``` 
+After completion, read the exit code from `$.Stats.ExitCode`:
 
-1.	Step 1 (Enter data in the (+) definition).
-    The first Step function is a GET request to obtain the OpCon-API version.
-    a.	Select the GET function.
-    b.	Enter the full URL https://@Url/api/version (in this case the https indicates that the connector will use TLS when communicating with the web server).
-    c.  If a proxy server is required enter the URL of the proxy server.
-    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
-    e.	Select the Request tab.
-        i.	 Select application/json from the Content Type drop-down list.
-    f.	Select the Response tab.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Response Variable Management tab. 
-        iii. The request will return the OpCon-API version and we need to extract the value and place it in a variable that will be used by the subsequent steps. In the Attribute section 
-             add @Version into the Name field and $.opConRestApiProductVersion into the value field which will extract the first id attribute returned in the JSON data and save it in the 
-             variable @Version.
-             The $.opConRestApiProductVersion is a JSONPath definition indicating the attribute value to extract from the JSON data. The ($) indicates start from the root of the JSON
-             structure and the (.opConRestApiProductVersion) indicates get the value of the first id attribute in the JSON data.
-        iv.	 Select the Step Completion TAB.
-        v.	 Set the Step completion code to 200.
-    g.	Press the Add Step button.
- 
-```
-## Windows Authentication
-Execute a request on an IIS Web Server using Windows Authentication.
+| Exit code | Connector return |
+|-----------|------------------|
+| `0` (Good Finish) | `200` |
+| Any other value | `404` |
 
-In the **Variables** section of the **Global variables** tab,  enter the @User, @Password and @Domain variables that will provide the information used during authentication (the password value should be placed in an encrypted property). To increase portability when sharing templates, enter the web server address using the @Url variable.
- 
-Variable Name   | Variable Value
---------------- | -----------
-@Url            | OPCON01
-@User           | USER001
-@Password       | [[USER001_PWD]]
-@DOMAIN         | OPCON001
+### Reading a VisualCron job variable
 
-In the **Step** tab, enter the following:
+VisualCron job variable values are returned as a plain text string, not JSON. Capture the result with a response variable whose value is `TEXTSTRING`. The connector then inserts the entire returned payload into the variable without parsing it.
 
-``` 
-1.	Step 1 (Enter data in the (+) definition).
-    The first Step function is a GET request to retrieve information from the Web Server.
-    a.	Select the GET function.
-    b.	Enter the full URL https://@Url/version (in this case the https indicates that the connector will use TLS when communicating with the web server).
-    c.  If a proxy server is required enter the URL of the proxy server.
-    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
-    e.	Select the Request tab.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Header tab.
-        iii. In the Attributes section indicate Windows authentication will be used. Enter an attribute consisting of Authorization into the Name field and NTLM into the Value field. The 
-        Connector will detect that Windows authentication is required and create the required credentials for such a connection.
-    f.	Select the Response tab.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Step Completion TAB.
-        iii. Set the Step completion code to 200.
-    g.	Press the Add Step button.
+## FAQs
 
-```
-## Using Client Certificates
-Execute a request on Web Server using Client certificate for Authentication.
+**Where do I define variables that are reused across steps?**
+On the **Variables** section of the **Global Values** tab. Variables are referenced by name (prefixed with `@`) in URLs, headers, and message bodies. Values from a previous step's response can be assigned to a variable on the **Response Variable Management** tab and used in later steps.
 
-In the Variables section of the Global variables enter the @CertStore, @CertStorePwd and @CertStoreType variables that will provide the information used during authentication (the password value should be placed in an encrypted property). 
- 
-Variable Name   | Variable Value
---------------- | -----------
-@CertStore      | c:\wsconnector\store\badssl.pkcs12
-@CertStorePwd   | [[BADSSL_PWD]]
-@CertStoreType  | PKCS12
+**How is a token from an authentication step passed to later steps?**
+Define a response variable (for example, `@Token`) with a JSONPath expression that extracts the token from the authentication response. Subsequent steps reference `@Token` in the `Authorization` header value (for example, `Token @Token`).
 
-In the **Step** tab, enter the following:
-``` 
-1.	Step 1 (Enter data in the (+) definition).
-    The first Step function is a GET request to retrieve information from the Web Server.
-    a.	Select the GET function.
-    b.	Enter the full URL https://client.badssl.com (in this case the https indicates that the connector will use TLS when communicating with the web server).
-    c.  If a proxy server is required enter the URL of the proxy server.
-    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
-    e.	Select the Request tab.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Header tab.
-        iii. In the Attributes section indicate certificate authentication will be used. Enter an attribute consisting of Authorization into the Name field and CERT into the Value field. 
-             The Connector will detect that certification authentication is required and create the required credentials for such a connection.
-    f.	Select the Response tab.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Step Completion tab.
-        iii. Set the Step completion code to 200.
-    g.	Press the Add Step button.
+**When should I use Environment Variables instead of Variables?**
+When an OpCon property value contains characters (such as unescaped backslashes in Windows paths) that would break JSON parsing. Environment Variables are passed to the agent through the OS environment rather than through the JSON job definition.
 
-``` 
-## File upload
-Upload a file to a webserver.
+**How do I retrieve a VisualCron job variable value?**
+Issue a `GET` request to `http://@Url/VisualCron/json/JobVariableValue/Get?token=@Token&jobId=@Jobid&id=jobvarname`. Because VisualCron returns a plain text string rather than JSON or XML, define a response variable with the value `TEXTSTRING` to capture the result.
 
-When uploading a file, the file information is entered into the File Name field of the Request information and the multipart/form-data Content-Type is selected. The selection of the multipart/form-data indicates that this is a file upload request. The file must reside on the server where the connector is installed.
- 
-In the **Step** tab, enter the following:
-``` 
-1.	Step (Enter data in the (+) definition).
-    The Step function is a POST request to submit information to the Web Server.
-    a.	Select the POST function.
-    b.	Enter the full URL http://httpbin.org/post (in this case the http indicates that the connector will use non-TLS when communicating with the web server).
-    c.  If a proxy server is required enter the URL of the proxy server.
-    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
-    e.	Select the Request tab.
-        i.	 Select multipart/form-data from the Content Type drop-down list.
-        ii.	 Select the Body TAB.
-        iii. In the File Name field enter the full name of the file that must be uploaded.
-        iv.  Select the record termination string from the drop-down list (CRLF for Windows target environment or LF Unix/LInux target environment).
-        v.   When submitting variables, enter them in the Message Body section. The format is name=value&name1=value1.
-    f.	Select the Response tab.
-        i.	 Select application/json from the Content Type drop-down list.
-        ii.	 Select the Step Completion tab.
-        iii. Set the Step completion code to 200.
-    g.	Press the Add Step button.
+**What completion codes does the connector return for poll requests?**
+The connector returns `200` (or the configured **Completion Code**) on a Good Finish, `460` on a Bad Finish, and `408` if the **Max Time** value expires before a Good Finish or Bad Finish is detected.
 
-```
-## SOAP Webservices
-Submit a POST request to a SOAP Webservice.
+**How do I upload a file?**
+Select `multipart/form-data` as the Content-Type, enter the full file path in the **File Name** field of the **Body** tab, and select the record termination string (`CRLF` for Windows targets, `LF` for Unix/Linux targets). To submit additional form fields, add them in the **Message Body** as `name=value&name1=value1`.
 
-It is possible to submit a POST request from the WebServices connector to a SOAP Webserver. When using this capability, the Message-Type=SOAP attribute must be set in the header attributes, the submitted Content-Type must be text/xml, the response Content-Type should be application/xml and the message body must contain the complete soap definition (soap12:Envelope). 
+## Glossary
 
-The example below will submit a request to a SOAP webserver and then extract a value from the returned data into a variable @Fahrenheit.
-
-In the **Step** tab, enter the following:
-```  
-1.	Step (Enter data in the (+) definition).
-    The Step function is a POST request to submit information to the Web Server.
-    a.	Select the POST function
-    b.	Enter the full URL https://www.w3schools.com/xml/tempconvert.asmx (in this case the http indicates that the connector will use TLS when communicating with the web server).
-    c.  If a proxy server is required enter the URL of the proxy server.
-    d.  Select the TLS version to use from the dropdown list (if TLS nor required, leave TLS as the default).
-    e.	Select the Request tab.
-        i.	 Select text/xml from the Content Type drop-down list.
-        ii.	 Add Message-Type=SOAP header attribute.
-        iii. Select the Body tab.
-        iv.	 In the Message Body field insert the SOAP envelope.
-
-            <?xml version="1.0" encoding="utf-8"?>
-            <soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
-            <soap12:Body>
-                <CelsiusToFahrenheit xmlns="https://www.w3schools.com/xml/">
-                <Celsius>50</Celsius>
-                </CelsiusToFahrenheit>
-            </soap12:Body>
-            </soap12:Envelope>
-    f.	Select the Response tab.
-        i.	 Select application/xml from the Content Type drop-down list.
-        ii.	Insert the attribute extract information into the Response Variable Management table. Variable name @Fahrenheit value //CelsiusToFahrenheitResponse/CelsiusToFahrenheitResult/
-            text().
-        iii. Select the Step Completion tab.
-        iv.  Set the Step completion code to 200.
-    g.	Press the Add Step button.
-
-```      
-When trying to define the SOAP envelope, the best approach is to retrieve the wsdl definition by submitted the https://www.w3schools.com/xml/tempconvert.asmx?wsdl in a browser. This will return the end-points supported by the tempconvert.asmx service.
-
-## Starting Jobs within VisualCron (RPA)
-WebServices can be used to issue commands to start and monitor VisualCron defined jobs using the VisualCron Rest-API (a VisualCron job is like an OpCon sub-schedule and contains one or more tasks which can be equated to OpCon jobs). 
-
-A VisualCron job can consist of one or more tasks. In all cases the job should be monitored for completion not the individual tasks.
-
-When starting tasks within VisualCron, it is possible to pass VisualCron job variable values as part of the OpCon job definition. 
-
-The VisualCron Rest-API uses GET functions for all requests.
-
-The process to start and monitor VisualCron jobs requires the following steps. It is recommended that WebServices variables be used to define the url, user, password and job names.
-The following section outlines the basic steps required to execute and monitor VisualCron jobs. 
-
-1.  Authenticate using a VisualCron user and password and save the returned token as a WebServices variable to be used for subsequent requests.
-
-    http://@Url/VisualCron/json/logon?username=@User&password=@Password&expire=3600
-    The token can be retrieved using the JsonPath value **$.Token** and saving in a @Token WebServices variable. 
-2.  Retrieve the job id of the job that should be started using the name of the job.
-
-    http://@Url/VisualCron/json/Job/GetByName?token=@Token&name=@Jobname
-    The @Token value is the value retrieved in step 1. 
-    The jobid can be retrieved using the JsonPath value **$.Id** and saving in a @Jobid WebServices variable. 
-3.  Start the job using the job id retrieved in step 2 passing variables if required.
-
-    http://@Url/VisualCron/json/Job/Run?token=@Token&id=@Jobid&variables=@Variables
-    http://@Url/VisualCron/json/Job/Run?token=@Token&id=@Jobid
-    The @Token value is the value retrieved in step 1. 
-    The @Jobid value is the value retrieved in step 2. 
-4.  Monitor the status of the job using the Status field of the Stats attribute. 
-    http://@Url/VisualCron/json/Job/Get?token=@Token&id=@Jobid
-    The @Token value is the value retrieved in step 1. 
-    The @Jobid value is the value retrieved in step 2. 
-
-    The job status can be retrieved using the JsonPath value **$.Stats.Status**
-    goodFin value is 1, badFin value is 2.
-    The status values consist of the following:
-    - 0  means Job is running
-    - 1  means Job is waiting - in VisualCron when a job completes, it goes back to the waiting state
-    - 2  paused 
-5.  After job completion, get the job completion code from the ExitCode field of the Stats attribute 
-    http://@Url/VisualCron/json/Job/Get?token=@Token&id=@Jobid
-    The @Token value is the value retrieved in step 1. 
-    The @Jobid value is the value retrieved in step 2. 
-
-    The job exit code can be retrieved using the JsonPath value **$.Stats.ExitCode**
-    goodFin value is 0
-    If the goodFin value is 0, the job return code will be 200, otherwise the job return code will be 404.     
-6.  It is possible to retrieve a VisualCron job variable value
-    http://@Url/VisualCron/json/JobVariableValue/Get?token=@Token&jobId=@Jobid&id=jobvarname
-   The @Token value is the value retrieved in step 1. 
-    The @Jobid value is the value retrieved in step 2. 
-    The jobvarname is the name of the job variable.
-
-    When retrieving the value of a VisualCron job variable, a text string is returned. To parse this value and insert it into a WebServices variable for future use, in the **Response.Response Variable Management** section of the request insert a variable name and the value **TEXTSTRING**.
-    This will indicate to the parsing mechanism that the returned data is a text string instead of an Json or XML structure. 
+| Term | Definition |
+|------|------------|
+| Token authentication | Authentication mode where credentials are exchanged for a short-lived token that is passed in the `Authorization` header on subsequent requests. |
+| Basic authentication | Authentication mode that Base64-encodes `@User:@Password` and passes it in the `Authorization` header. |
+| NTLM | Windows Authentication mode used for IIS endpoints. Requires `@User`, `@Password`, and `@Domain` variables. |
+| OAuth2 | Token-based authentication mode that uses `application/x-www-form-urlencoded` and credentials such as `client_id`, `client_secret`, and `tenant_id`. |
+| Polling | Connector capability that re-issues a request on a configured interval until a Good Finish or Bad Finish is matched, or **Max Time** expires. |
+| TEXTSTRING | A response variable value that tells the connector to capture the entire returned payload as a plain text string rather than parse it as JSON or XML. |
+| `multipart/form-data` | A Content-Type used to upload a file. Requires a record termination selection (`CRLF` or `LF`) on the **Body** tab. |
+| SOAP envelope | The XML message body submitted to a SOAP web service. Requires `Message-Type=SOAP` in the request header and a Content-Type of `text/xml`. |

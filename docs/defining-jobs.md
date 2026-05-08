@@ -1,193 +1,367 @@
-# Defining Jobs
+---
+sidebar_label: 'Defining jobs'
+title: Defining Webservices Connector jobs
+description: "How to define a Webservices Connector job, configure global values, define steps, and set failure criteria."
+tags:
+  - Procedural
+  - Reference
+  - Automation Engineer
+  - Connectors
+---
 
-When defining a SMAWSConnector job, select a Windows or Unix / Linux job type and then select the **Web Services** job sub-type. 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
-The job sub-type requires the selection of an OpCon batch user that will be used to execute the connector. The Connector location consists of a global property that contains the root installation directory of the connector software.
- 
-The job sub-type has a template id value that can be used to uniquely identify the template used when creating the job definition. A job template can be loaded by selecting the Import Template button which will allow you to browse for a template. Once a template has been selected and imported, the information will be seen in the fields. The values of Variables and Environment Variables will be presented as ??????. Once a job definition is complete, it is possible to save this as a template by selecting the Export Template button. 
+# Defining jobs
 
-The job definition has three main tabs that are used to complete the definition. 
+## What is it?
 
-## Global Values Tab 
-This tab supports the definition of **Variables**, **Environment Variables** and **Property Update on Completion** values. Variables and Environment Variables are used as arguments to update place holders in JSON or XML data and URLs, while Property update on Completion consists of property names that will be updated with the associated values that will be written into the defined OpCon property when all the steps have completed successfully. 
+This page describes how to define a Webservices Connector job in Enterprise Manager. It covers the **Global Values**, **Steps**, and **Failure Criteria** tabs of the **Web Services** job sub-type, including variables, Environment Variables, property updates on completion, request and response definitions, authentication options, and connector return codes.
 
-### Variables Tab
-The tab supports the definition of global variables and properties. Global variables are used as arguments to update place holders in JSON data and URLs, while properties consist of property names and variable names. The contents of the variable will be written into the OpCon property when all steps have completed successfully.
+## Job definition overview
 
-Variables are used to define global variables that can be used during the associated **Steps**. These variables are prefixed with a **@**. The variables are then used as arguments that are substituted in the URL definition or the JSON data with the associated values and then submitted as part of POST or PUT requests. 
+A Webservices Connector job is configured across three tabs. Use this overview to orient yourself before reading the detail sections.
 
-Examples are providing a URL value **@Url** value and user **@User**, password **@Password** and domain **@Domian** values during authentication. The @Url value is replaced in the URLs while the @User and @Password values are replaced in the JSON data message body.
+| Tab | What you configure | Section |
+|-----|-------------------|---------|
+| **Global Values** | Variables, Environment Variables, and properties to update when the job completes successfully. | [Global Values tab](#global-values-tab) |
+| **Steps** | The sequence of HTTP requests the connector performs (URL, function, headers, body, response handling). | [Steps tab](#steps-tab) |
+| **Failure Criteria** | The expected completion code of the final step. | [Failure Criteria tab](#failure-criteria-tab) |
 
-Variables are defined using a **@** as the first character followed by a name in the Name field and the associated value in the Value field. 
+## Selecting the job sub-type
 
-When using OpCon properties to provide the associated value, it should be remembered that the OpCon property value will be resolved by OpCon during task start-up and substituted in the json task definition which is being submitted to the connector. If the OpCon property contains a Windows path definition, it will create problems with JSON parsing as the Windows path definition has not been escaped (i.e. \\server\directory) .In such a case, Environment Variables should be used as these values are not part of the JSON task definition. 
+To create a Webservices Connector job, complete the following steps:
 
-Examples:
- 
-URL replacement
+1. Create a Windows or UNIX/Linux job.
+2. Select the **Web Services** job sub-type.
+3. Select an OpCon batch user. The connector runs as this user.
+4. Set the connector location to the global property that points to the connector installation directory (`WS_PATH` on Windows, `WS_UNIX_PATH` on Linux or Docker — see [Installation](./installation.md#step-3-create-the-global-property)).
+
+:::tip Use templates to bootstrap a job
+The job sub-type has a **Template ID** field that uniquely identifies the template used to create the job.
+
+- **Import Template** loads a template file into the fields. Variable and Environment Variable values are presented as `??????`.
+- **Export Template** saves the current job as a template. Sensitive values are written as `??????` to prevent inadvertent export.
+:::
+
+## Global Values tab
+
+The **Global Values** tab has three sub-tabs:
+
+| Sub-tab | Purpose |
+|---------|---------|
+| **Variables** | Define `@`-prefixed variables substituted into URLs, headers, and bodies at run time. |
+| **Environment Variables** | Define variables passed to the agent through the OS environment, bypassing JSON parsing. |
+| **Property Update on Completion** | Map response variables to OpCon properties to be written when the job completes successfully. |
+
+### Variables sub-tab
+
+Variables are global to the job and available to every step. Reference them by name (prefixed with `@`) in URLs, request headers, and message bodies.
+
+To define a variable:
+
+1. Enter `@` followed by a name in the **Name** field.
+2. Enter the value in the **Value** field.
+
+The connector substitutes the variable's value wherever the variable name appears in the step definition.
+
+:::caution Backslashes break JSON parsing
+When a variable's value comes from an OpCon property, OpCon resolves the property at task start-up and inserts the raw value into the JSON job definition. Backslashes are not escaped — a value such as `\\server\directory` breaks JSON parsing.
+
+For values that contain backslashes or other JSON-unsafe characters, use an [Environment Variable](#environment-variables-sub-tab) instead.
+:::
+
+#### URL replacement example
+
+```text
+@Url = server:9010
+
+https://@Url/api/tokens   →   https://server:9030/api/tokens
 ```
-@url = server:9010
 
-https://@Url/api/tokens -> https://server:9030/api/tokens
+#### JSON body replacement example
 
-```
-JSON Message Body replacement
-```
+```text
 @User = test
-@Password = [[testpwd]] (an encrypted property)
+@Password = [[testpwd]]    (an encrypted property)
+```
 
- {
+The variable references are substituted in place:
+
+```text
+{
   "id":null,
   "user":
   {
     "id":-1,
-    "loginName":"@User",    -> "loginName":"test"
-    "password":"@Password"  -> "password":"encrypted property definition"  (this will be decrypted by the target OpCon agent)
+    "loginName":"@User",      →  "loginName":"test"
+    "password":"@Password"    →  "password":"<encrypted property definition>"
   },
   "tokenType":
   {
     "id":null,
     "type":"User"
   }
-} 
+}
 ```
 
-In the above examples, the @Url variable value will be substituted in the URL and the @User and @Password variable values would be substituted into the defined JSON data.
-The user code and password values could be placed in encrypted global tokens. However, it should be noted that the Windows Agent where the connector installed, must support this functionality.
+The encrypted password value is decrypted by the target OpCon agent at run time.
 
-### Environment Variables Tab
-This is used to define variables that can be used during the steps. These variables are prefixed with a @. They can be used as arguments that are substituted in the URL definition or the JSON or XML data submitted as part of POST or PUT requests. 
+:::note Encrypted properties require agent support
+Storing user code and passwords in encrypted global properties is supported, but the Windows agent where the connector is installed must support this functionality.
+:::
 
-Examples are providing URL value @Url value, user code (@User) and password (@Password) values during authentication and OpCon property values @MAIN_PATH ([[SI.MAIN_PATH]]). The @Url value is replaced in the URLs while the user and password values are inserted into the JSON data replacing the @User and @Password values with the real values. The @MAIN_PATH value is replaced with the contents of the OpCon property [[SI.MAIN_PATH]]. 
+### Environment Variables sub-tab
 
-The Environment Variables option provides a way for OpCon properties that contain JSON parsing problems to be used by the connector as the Environment Variables are not part of the OpCon task definition but are passed as Environment Variables to the associated agent. The agent loads the environment variables for the task execution making them available for retrieval by the connector. 
+Environment Variables are an alternative variable mechanism that bypasses JSON parsing. They are passed to the agent through the OS environment instead of through the OpCon job definition. The agent loads them into the run environment, and the connector reads them on start-up.
 
-Environment Variables are entered by defining them using a @ as the first character followed by a name in the Name field and the associated value in the Value field. 
-Examples:
- 
-```
+Use Environment Variables when an OpCon property value contains characters (such as backslashes in Windows paths) that would break JSON parsing.
+
+To define an Environment Variable:
+
+1. Enter `@` followed by a name in the **Name** field.
+2. Enter the value in the **Value** field.
+
+#### Example
+
+```text
 @MAIN_PATH = [[SI.MAIN_PATH]]
-
-File Name replacement
- 
-@MAIN_PATH\jfiles\login.json 
 ```
 
-The @MAIN_PATH value will be replaced with the [[SI.MAIN_PATH]] value. However, it should be noted that the agent where the connector installed, must support the Environment Variables feature.
+Reference the Environment Variable in a step:
 
-### Property Update on Completion
-OpCon Properties can be used to save values extracted from the returned jJSON or xml data for subsequent task execution when the current task completed successfully. The values can be saved in OpCon global, schedule instance or job instance properties. It should be noted that the use of a dot (.) in the schedule or job name will cause problems with the property resolution. 
-
-Example:
+```text
+@MAIN_PATH\jfiles\login.json
 ```
+
+The connector substitutes `[[SI.MAIN_PATH]]` into the file path at run time.
+
+:::note Agent must support Environment Variables
+The agent where the connector is installed must support the Environment Variables feature.
+:::
+
+### Property Update on Completion sub-tab
+
+Use **Property Update on Completion** to save values extracted from response data into OpCon properties when all steps complete successfully. Three property scopes are supported:
+
+| Scope | Used for |
+|-------|----------|
+| Global | OpCon-wide values. |
+| Schedule instance (`SI.`) | Values associated with the schedule. |
+| Job instance | Values associated with a specific job in the daily. |
+
+#### Example
+
+```text
 SI.Version.[[$SCHEDULE DATE-YYYY-MM-DD]].API_EXP_TEST_CJOB001[SUB_API_EXP_TEST] = @Version
 ```
 
-In the above example, the contents of the @Version variable will be inserted into the OpCon schedule instance property Version of the sub-schedule API_EXP_TEST_CJOB001[SUB_API_EXP_TEST] in the daily table for the date associated with [[$SCHEDULE DATE-YYYY-MM-DD]] value. When defining instance properties as the destination, a special date property should be created and used as the OpCon-API expects date values in the yyyy-mm-dd format. 
+This writes the contents of the `@Version` response variable to the `Version` schedule instance property of the `API_EXP_TEST_CJOB001[SUB_API_EXP_TEST]` sub-schedule, for the date supplied by `[[$SCHEDULE DATE-YYYY-MM-DD]]`.
 
-## Steps Tab
-The Steps tab is used to define the actions that the connector will perform. These steps are performed in sequence from first to last. Each time a step in created, a new Tab is created with the header Step(n) where n is the Step number. Each step definition consists of a URL and associated Request and Response definitions.
+:::caution Avoid dots in schedule and job names
+The dot (`.`) character is used as a field separator in property paths. A schedule or job name that contains a dot causes the property resolution to fail.
+:::
 
-To create a Step, enter the required data and then select the **Add Step** button. This will create the step naming it Step(n). To create subsequent steps, select the **+** tab, enter the required data and once again select the **Add Step** button. To remove a step, select the step and then select the **Remove Step** button. The step will be removed and the Step(n) values will be adjusted.
- 
-Select the function (**GET, POST,PUT, DELETE**) from the drop-down list and enter the full URL of the web server request including http or https as well as address and port. The connector will use a TLS connection if it detects that the URL contains https.
+:::caution Use the `yyyy-mm-dd` date format
+The OpCon REST API expects dates in `yyyy-mm-dd` format. When targeting an instance property, create a `$SCHEDULE DATE` property in this format and use it (for example, `[[$SCHEDULE DATE-YYYY-MM-DD]]`).
+:::
 
-If this step requires a proxy server, enter the full proxy server URL in the **Proxy Server** field. If the Proxy server is activated in the Connector.config, the value in the **Proxy Server** field will override it.
+## Steps tab
 
-Select the TLS version to use for this step from the **TLS** drop-down list. The currently supported values are **TLS, TLSv1.0, TLSv1.1, TLSv1.2 nad TLSv1.3** with default value set to **TLS**.
+The **Steps** tab defines the sequence of HTTP requests the connector performs. Steps run in order from first to last. Each step is shown on its own tab labeled `Step(n)`.
 
-### Request Information Tab
-The Request information consists of selecting the Content Type that will be submitted from the drop-down list, defining header attributes that will be inserted into the header of the request and the associated payload should the request be a POST or a PUT. 
+### Adding and removing steps
 
-#### Header Tab 
-Header attributes are provided by using the **Header** tab and entering the header attribute name in the Attribute Name field and the associated value in the Attribute Value field. Different authentication methods can be provided for each step including the appropriate header definitions. It is possible to use variable values previously defined or created by a previous step. 
+| Action | How |
+|--------|-----|
+| Create the first step | Enter the step data, then select **Add Step**. The step is created as `Step(1)`. |
+| Add another step | Select the **+** tab, enter the step data, then select **Add Step**. The new step is `Step(n+1)`. |
+| Remove a step | Select the step, then select **Remove Step**. Subsequent step numbers are renumbered. |
 
-Attribute Name | Attribute Value
--------------- | -----------
-***name***     | ***value***
-***name***     | @variable
+### Step fields
 
-##### Basic Authentication
-When using Basic Authentication is required, a header Attribute Name of **Authorization** and a Attribute Value of **Basic** must be defined. The connector detects this and uses the @User and @Password variable values to generate the required credentials by performing a Base64 encoding of the ‘@User:@Password’ string and insert this it to the value of the header attribute.
-Requires that the @User and @Password variables are defined.
+Each step has the following top-level fields:
 
-Attribute Name | Attribute Value
--------------- | -----------
-Authorization  | Basic
+| Field | Description |
+|-------|-------------|
+| **Function** | The HTTP function: `GET`, `POST`, `PUT`, or `DELETE`. |
+| **URL** | The full URL of the web server request, including `http` or `https`, address, and port. The connector uses TLS automatically when the URL contains `https`. |
+| **Proxy Server** | Optional. Full proxy URL to use for this step. Overrides the `Connector.config` proxy if both are set. |
+| **TLS** | TLS version: `TLS` (default), `TLSv1.0`, `TLSv1.1`, `TLSv1.2`, or `TLSv1.3`. |
 
-##### Windows Authentication for IIS
-When using Windows Authentication to IIS, a header Attribute Name of **Authorization** and a Attribute Value of **NTLM** must be defined. The connector detects this and uses the @User, @Password and @Domain variable values to generate the required credentials for the connection. Requires that the @User, @Password and @Domain variables are defined.
+### Request Information
 
-Attribute Name | Attribute Value
--------------- | -----------
-Authorization  | NTLM
+The **Request** sub-tab defines the Content-Type, header attributes, and (for POST and PUT) the payload.
 
-##### Token Authentication
-When using Token Authentication, a header Attribute Name of **Authorization** and a Attribute Value which is dependent on the recipient application must be used. The token is usually retrieved in a previous step and saved in a dynamic variable (@Token) which is then used in then used in the subsequent requests. For authentication to the OpCon REST-API, the Attribute value is Token \<***token***\>. 
+#### Header tab
 
-Attribute Name | Attribute Value
--------------- | -----------
-Authorization  | Token @Token
+Enter header attributes by setting **Attribute Name** and **Attribute Value**:
 
-##### Certificate Authentication
-When working with client certificates, a header Attribute Name of **Authorization** and a Attribute Value of **CERT** must be defined. The connector detects this and uses the @CertStore variable value to create the required credentials extracting the certificate from the named keystore. Requires that the @CertStore, @CertStorePwd and @CertStoreType variables are defined.
+| Attribute Name | Attribute Value |
+|----------------|-----------------|
+| *name* | *value* |
+| *name* | `@variable` |
 
-Attribute Name | Attribute Value
--------------- | -----------
-Authorization  | CERT
+You can use variable values previously defined or created by a previous step.
 
-##### Using SOAP 
-When working with SOAP Webservices, a header Attribute Name of **Message-Type** and a Attribute Value of **SOAP** must be defined and the Content-Type text/xml should be selected.
+##### Authentication modes
 
-#### Body Tab
-The payload can be entered using the Body Tab. 
+The connector recognizes the authentication mode from the `Authorization` header value (or `Message-Type` for SOAP). Set the **Header** values as shown below for each mode:
 
-##### FileName
-The payload can be provided by entering the full path of the filename containing the data in the **File Name** field. It should be noted that if a filename is used, the location of the file should be available on the system where the connector is installed.
+| Mode | Attribute Name | Attribute Value | Required variables | What the connector does |
+|------|----------------|-----------------|--------------------|-------------------------|
+| Basic | `Authorization` | `Basic` | `@User`, `@Password` | Performs Base64 encoding of `@User:@Password` and adds it to the header. |
+| NTLM (Windows / IIS) | `Authorization` | `NTLM` | `@User`, `@Password`, `@Domain` | Builds NTLM credentials from the variables. |
+| Token | `Authorization` | `Token @Token` | `@Token` (typically populated from a prior step) | Passes the token through to the target server. |
+| Certificate | `Authorization` | `CERT` | `@CertStore`, `@CertStorePwd`, `@CertStoreType` | Loads the named keystore and authenticates with the client certificate. |
+| SOAP | `Message-Type` | `SOAP` | — | Treats the request as a SOAP message. Set the Content-Type to `text/xml`. |
 
-##### Message Body
-The payload can be entered directly into the **Message Body** field.
- 
-## Response Information Tab
-The Response information consists of selecting the Content Type to be returned from the drop-down list, defining Response Variables that are used to extract attribute values from the returned data and setting step completion information.
+#### Body tab
 
-### Response Variable Management
-This provides a mechanism to extract information in the returned payload and save the extracted information into a variable so that subsequent steps can use the information. Currently attribute extraction is only supported when the Content Type is application/json or application/xml.
+Provide the request payload using one of two options:
 
-When defining a response variable give it a unique name starting with a (@) and then define the attribute name in the JSON or XML data to extract the value for. The syntax uses standard JSONPath formats which is a query language for JSON and standard XPath formats which is a query language for XML. If the attribute is not found, the connector will terminate with an appropriate message and an error code of 1.
+<Tabs groupId="body-source" queryString>
+  <TabItem value="message" label="Message Body" default>
 
-Attribute Name | Attribute Value
--------------- | -----------
-@Token         | $.id
-@Value         | //issue/id/text()
- 
-#### Response Variable Management 
-The Step completion information defines what to do when the step completes. 
-It requires setting a HTTP return code value in the **Completion Code** which is then checked after the step completes. If the step retun code does not match the defined value, the workflow will stop, returning the failed code. It is possible to bypass the **Completion Code** check by selecting the **Ignore Result** field. 
+Enter the payload directly in the **Message Body** field.
 
-It is also possible to check the contents of the returned JSON or XML data to determine if the processing was successful as web server return code indicates that the function you requested completed successfully or failed. The connector will check the contents of the attribute defined in the **Attribute to Check** field for a match for values contained in the **Good Finish** and **Bad Finish** fields. Multiple values can be entered in these fields by separating each value with a forward slash (/).
+  </TabItem>
+  <TabItem value="filename" label="File Name">
 
-It is possible to scan through a JSONARRAY looking for a specific value in the records. When using this capability, use a star (*) instead of a numeric value. The star value indicates that all records in the array should be searched until a match is found (this capability is not supported for polling).
- 
-It is also possible to perform a ‘poll’ performing subsequent requests until a match is found. This function can be enabled by selected the **Poll** field and entering the polling requirements. The connector will use the values (defined in seconds) in the **Delay** and **Interval** fields to determine the polling frequency. The **Delay** field defines how long to wait before the first poll request and the **Interval** field defines the time to wait between subsequent request . The **Max Time** value (defined in minutes) represents the maximum time to check for a valid response. The connector returns a 408 code if a **Bad Finish** is detected or a 460 if the **Max Time** value expires before a valid result is detected (**Good Finish** or **Bad Finish**).
+Enter the full path to a file containing the payload in the **File Name** field.
+
+:::note File location
+The file must be readable from the system where the connector is installed.
+:::
+
+  </TabItem>
+</Tabs>
+
+### Response Information
+
+The **Response** sub-tab defines the expected Content-Type, response variables to extract, and step completion criteria.
+
+#### Response Variable Management
+
+Response Variable Management extracts values from the response payload and saves them into variables that subsequent steps can use. Attribute extraction is supported when the Content-Type is `application/json` or `application/xml`.
+
+To define a response variable:
+
+1. Enter `@` followed by a unique name in the **Name** field.
+2. Enter a JSONPath (for JSON) or XPath (for XML) expression in the **Value** field.
+
+| Attribute Name | Attribute Value |
+|----------------|-----------------|
+| `@Token` | `$.id` |
+| `@Value` | `//issue/id/text()` |
+
+For JSONPath and XPath syntax reference, see [Operation > Response parsing](./operation.md#response-parsing).
+
+:::caution Missing attributes terminate the step
+If the attribute is not found in the response, the connector terminates with an error code of `1`.
+:::
+
+#### Step Completion
+
+Step Completion defines what makes a step succeed or fail. The connector evaluates three layered checks:
+
+##### 1. HTTP Completion Code
+
+| Field | Description |
+|-------|-------------|
+| **Completion Code** | The HTTP return code expected from the step. The workflow stops if the actual return code does not match. |
+| **Ignore Result** | Bypass the **Completion Code** check. |
+
+##### 2. Returned-data check
+
+The HTTP return code only confirms whether the request reached the server. To validate the *content* of the response, use a returned-data check:
+
+| Field | Description |
+|-------|-------------|
+| **Attribute to Check** | JSONPath or XPath expression identifying the value to compare. |
+| **Good Finish** | Match values that indicate success. Multiple values separated by `/`. |
+| **Bad Finish** | Match values that indicate failure. Multiple values separated by `/`. |
+
+:::tip Scan a JSONARRAY for a match
+Use a star (`*`) instead of a numeric index in the JSONPath to scan all records of an array until a match is found. JSONARRAY scanning is not supported in poll mode.
+:::
+
+##### 3. Polling
+
+Polling re-issues the same request on an interval until a Good Finish or Bad Finish is matched, or until **Max Time** expires.
+
+| Field | Unit | Description |
+|-------|------|-------------|
+| **Poll** | — | Enables polling. |
+| **Delay** | Seconds | Wait before the first poll request. |
+| **Interval** | Seconds | Wait between subsequent poll requests. |
+| **Max Time** | Minutes | Maximum total time to wait for a valid response. |
+
+| Outcome | Connector return code |
+|---------|----------------------|
+| Bad Finish matched | `408` |
+| Max Time expired before any match | `460` |
 
 #### Output File
-It is also possible to write the returned data to an output file by entering a filename in the **Output File** field. It should be noted that if a filename is used, the location of the file should be available to the system the connector is installed on.
 
-## Failure Criteria Tab
-The Failure Criteria tab is used to define result of the defined workflow. The result should be the completion code of the final step.
- 
-The connector returns the following codes:
+Optionally, write the response data to a file by entering a filename in the **Output File** field. The location must be writable from the system where the connector is installed.
 
-Code     | Description
----------| -----------
-1        | When an initialization error or an initial connection errors occurs.
-400-599	 | Standard HTTP errors
-408	     | When the maximum wait time expires during a poll request sequence
-460	     | When the error condition is returned during a poll request sequence
- 
-## Logging and Job Output
-The default logging implemented by the connector consists of a maximum cycle of five log files. The log files contain information about the connector and any jobs run by the connector. The log files (webservices.log) can be found in the \<***installation root***\>\\log directory. Information is appended into the log files and any error messages, return codes can be viewed in these log files.
+## Failure Criteria tab
 
-All information produced by the OpCon job is available in the job output and can be retrieved using the OpCon JORS capability.
+The **Failure Criteria** tab defines the result of the workflow. The result is the completion code of the final step.
 
+### Connector return codes
+
+| Code | Meaning |
+|------|---------|
+| `1` | Initialization error or initial connection error. |
+| `400`–`599` | Standard HTTP errors. |
+| `408` | **Bad Finish** matched during a poll request sequence. |
+| `460` | **Max Time** expired during a poll request sequence before a valid result. |
+
+## Logging and job output
+
+The connector writes its activity to a rolling log file:
+
+| Property | Value |
+|----------|-------|
+| File name | `webservices.log` |
+| Location | *installation root*`\log` directory |
+| Rotation | Maximum cycle of five log files; new entries are appended |
+| Contents | Connector activity, job activity, error messages, and return codes |
+
+All information produced by the OpCon job is also captured in the job output and can be retrieved with the OpCon JORS capability.
+
+## FAQs
+
+**How do I import or export a job template?**
+Select **Import Template** to load a template file into the job sub-type. Select **Export Template** to save the current definition as a template. Variable values are replaced with `??????` in the exported template to prevent inadvertent disclosure of sensitive data.
+
+**What's the difference between Variables and Environment Variables?**
+Variables are substituted into the JSON job definition at run time. Environment Variables are passed to the agent through the OS environment and are not part of the JSON definition. Use Environment Variables for values that would break JSON parsing (for example, Windows paths containing unescaped backslashes).
+
+**Which authentication modes does the connector support?**
+Basic (`Authorization: Basic`), Windows NTLM (`Authorization: NTLM`), token (`Authorization: Token <token>`), and client certificate (`Authorization: CERT`).
+
+**How do I extract a value from a response and use it in a later step?**
+On the **Response** tab of the step, define a response variable with a unique `@`-prefixed name and a JSONPath or XPath expression. The connector populates the variable with the extracted value, and subsequent steps can reference it by name.
+
+**How do I poll a web server until a job completes?**
+Select the **Poll** field on the **Step Completion** tab and set **Delay**, **Interval**, and **Max Time**. Define **Good Finish** and **Bad Finish** values to be matched against the **Attribute to Check**. The connector returns `408` on a Bad Finish and `460` if **Max Time** expires before a valid result is detected.
+
+**What does the connector return when a step fails?**
+A connector-internal error returns `1`. Standard HTTP errors return their HTTP status (`400`–`599`). A Bad Finish during polling returns `408`, and a poll timeout returns `460`.
+
+## Glossary
+
+| Term | Definition |
+|------|------------|
+| Step | A single request to a web server within a Webservices Connector job. Steps run in sequence. |
+| Template | A JSON-formatted SMAWSConnector job definition that can be imported into the **Web Services** job sub-type. |
+| Global variable | A variable defined on the **Global Values** tab and available to all steps. |
+| Response variable | A variable populated from a step's response and available to subsequent steps. |
+| Property Update on Completion | Configuration that writes variable values into OpCon properties when all steps complete successfully. |
+| Completion Code | The HTTP return code expected from a step. The workflow stops if the actual return code does not match. |
+| Good Finish / Bad Finish | Values matched against the response **Attribute to Check** to determine step success or failure. |
+| Poll | A step option that re-issues requests on a defined interval until a Good Finish or Bad Finish is matched, or until **Max Time** expires. |
+| JORS | OpCon Job Output Retrieval System, used to retrieve job output produced by the connector. |

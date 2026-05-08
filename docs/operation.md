@@ -1,78 +1,146 @@
+---
+sidebar_label: 'Operation'
+title: Operating the Webservices Connector
+description: "Reference for how the Webservices Connector parses responses, uses variables, handles authentication, and supports proxy servers and client certificates."
+tags:
+  - Reference
+  - Automation Engineer
+  - Connectors
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Operation
 
-The connector supports various content-types such as application/json, application/xml, application/x-www-form-urlencoded and text/plain. 
-The connector is unaware of specific objects and works generically with all JSON and XML data. 
+## What is it?
 
-## Response Parsing
-Response parsing in the returned data is supported for application/json using **JSONPath** and application/xml using **XPath**. Header parsing is also supported using the header attribute name. When defining jobs, the best approach is to run the connector in Debug mode as this dumps the data received from the web server. The job output can then be examined for the returned data so the JSONPath, XPath or header parsing syntax can be determined.
+This page describes how the Webservices Connector processes requests and responses. It covers response parsing using JSONPath, XPath, and header parsing; the use of variables and Environment Variables; authentication mechanisms; proxy server support; and client certificate handling.
 
-### JSONPath 
-Every JSON object is composed of an inherit hierarchy and structure. All JSON ends up creating a tree of nodes where each node is a JSON Element. These can be a single element or an array of elements. JSONPath provides a standard syntax to define different parts of a JSON document. It defines expressions to traverse through a JSON document.
+## How requests and responses work
 
-In the following example:
-```
+The connector is content-type aware and works generically with all JSON and XML data — it does not need to know about specific objects or schemas. The supported Content-Types are:
+
+| Content-Type | Direction | Notes |
+|--------------|-----------|-------|
+| `application/json` | Request and response | Supports JSONPath response parsing. |
+| `application/xml` | Request and response | Supports XPath response parsing. |
+| `text/xml` | Request and response | Required for SOAP Webservices. |
+| `application/x-www-form-urlencoded` | Request | Used for OAuth2 endpoints. |
+| `multipart/form-data` | Request | Used for file uploads. |
+| `text/plain` | Request and response | No structured parsing. |
+
+:::tip Use Debug mode while building jobs
+Set `DEBUG=True` in `Connector.config` while you are defining steps. Debug mode dumps the data received from the web server to the job output so you can determine the JSONPath, XPath, or header parsing syntax to use.
+:::
+
+## Response parsing
+
+The connector can extract values from a response using three syntaxes:
+
+| Source | Content-Type | Syntax | Example |
+|--------|--------------|--------|---------|
+| JSON body | `application/json` | JSONPath | `$.node.node1.[0].node3` |
+| XML body | `application/xml` | XPath | `//issue/id/text()` |
+| Response headers | Any | `#`-prefixed header name | `#Content-Type` |
+| Plain text body (VisualCron) | `text/plain` | `TEXTSTRING` | — |
+
+### JSONPath
+
+A JSON document is a tree of nodes; each node is either a single element or an array of elements. JSONPath defines expressions that traverse this tree to extract a value.
+
+The examples below use these sample documents:
+
+<Tabs groupId="jsonpath-example" queryString>
+  <TabItem value="single" label="Single attribute" default>
+
+Sample JSON:
+
+```json
 {
-  “node”:{
-    “node1”:{
+  "node":{
+    "node1":{
      [
-      {“node3”:”value3”},
-      {“node4”:”value4”}
+      {"node3":"value3"},
+      {"node4":"value4"}
    ],
   }
 }
 }
 ```
-The JSONPath syntax to extract the value of attribute node3 is: **$.node.node1.[0].node3** 
-- $ indicates root node operator
-- node is the name of a JSON node
-- node1 is the name of a JSON node within the first JSON node
-- [0] indicates the first record of the JSONARRAY following the JSON node node1
-- node3 is the required attribute to extract the value from
 
-In the following example:
+To extract the value of `node3`, use:
+
+```text
+$.node.node1.[0].node3
 ```
+
+| Token | Meaning |
+|-------|---------|
+| `$` | Root node operator. |
+| `node` | A JSON node. |
+| `node1` | A JSON node within `node`. |
+| `[0]` | The first record of the JSONARRAY following `node1`. |
+| `node3` | The attribute whose value is extracted. |
+
+  </TabItem>
+  <TabItem value="scan" label="Scan an array">
+
+Sample JSON:
+
+```json
 {
-  “node”:{
-    “node1”:{
+  "node":{
+    "node1":{
      [
-      {“nodeType”:”Type3”},
-      {“nodeType”:”Type4”}
+      {"nodeType":"Type3"},
+      {"nodeType":"Type4"}
      ],
     }
   }
 }
 ```
-The JSONPath syntax to scan for the value of an attribute nodeType within a JSONARRY is: **$.node.node1.[*].nodeType** 
-- $ indicates root node operator
-- node is the name of a JSON node
-- node1 is the name of a JSON node within the first JSON node
-- [*] indicates the scan all records of the JSONARRAY following the JSON node node1
 
-The JSONPath syntax to extract the value of array item is: **$.node.node1.[1]** 
-- $ indicates root node operator
-- node is the name of a JSON node
-- node1 is the name of a JSON node within the first JSON node
-- [1] indicates the required record of the JSONARRAY following the JSON node node1
+To scan an array for the value of `nodeType`, use:
 
-In the following example:
+```text
+$.node.node1.[*].nodeType
 ```
-{
-  “node”:{
-    “node1”:{
-     [
-      {“nodeType”:”Type3”},
-      {“nodeType”:”Type4”}
-     ],
-    }
-  }
-}
-```
-### XPath 
-XPath stands for XML Path Language. XPath uses ‘path like’ syntax to identify and navigate nodes in an XML document.
 
-In the following example:
+| Token | Meaning |
+|-------|---------|
+| `$` | Root node operator. |
+| `node` | A JSON node. |
+| `node1` | A JSON node within `node`. |
+| `[*]` | Scan all records of the JSONARRAY following `node1`. |
+
+  </TabItem>
+  <TabItem value="index" label="Array index">
+
+To extract the value of a specific array item:
+
+```text
+$.node.node1.[1]
 ```
-{<?xml version="1.0" encoding="UTF-8"?>
+
+| Token | Meaning |
+|-------|---------|
+| `$` | Root node operator. |
+| `node` | A JSON node. |
+| `node1` | A JSON node within `node`. |
+| `[1]` | The required record of the JSONARRAY following `node1`. |
+
+  </TabItem>
+</Tabs>
+
+### XPath
+
+XPath (XML Path Language) uses a path-like syntax to identify and navigate nodes in an XML document.
+
+Sample XML:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <issue>
   <id>1495</id>
   <project id="1" name="Default Project"/><tracker id="2" name="Deliverable"/>
@@ -94,89 +162,194 @@ In the following example:
   <created_on>2020-07-09T09:38:33Z</created_on>
   <updated_on>2020-07-09T09:38:33Z</updated_on>
   <closed_on/>
-</issue>)
+</issue>
 ```
-The XPath syntax to extract the value of element id **//issue/id/text()** 
-- // indicates root element operator
-- issue is the name of an element
-- issue id the name of an element that is required.
-- text() indicates that we want the value of the id element.
 
-The XPath syntax to extract the value of attribute name of element author **//issue/author/@name** 
-- // indicates root element operator
-- issue is the name of an element
-- author is the name of an element that is required.
-- @ indicates we require an attribute value.
-- name is the name of the attribute of the element.
+<Tabs groupId="xpath-example" queryString>
+  <TabItem value="element" label="Element value" default>
 
-### Text Strings
-When requesting the value of variables associated with VisualCron jobs, a single text string is returned instead of a JSON structure. Using the **TEXTSTRING** value will insert the complete returned result into the associated token.  
+To extract the value of element `id`:
 
-### Header Parsing 
-It is possible to parse the returned header for attribute values by specifying the attribute name.
-The parsing syntax is prefixed by a hash (#). 
-The header syntax to retrieve the returned data type is **#Content-Type**
-- \# indicates this is a header parsing definition
-- Content-Type is header attribute to extract the value from.
+```text
+//issue/id/text()
+```
+
+| Token | Meaning |
+|-------|---------|
+| `//` | Root element operator. |
+| `issue` | The name of an element. |
+| `id` | The element whose value is required. |
+| `text()` | The value of the `id` element is required. |
+
+  </TabItem>
+  <TabItem value="attribute" label="Attribute value">
+
+To extract the value of attribute `name` on element `author`:
+
+```text
+//issue/author/@name
+```
+
+| Token | Meaning |
+|-------|---------|
+| `//` | Root element operator. |
+| `issue` | The name of an element. |
+| `author` | The element whose attribute is required. |
+| `@` | Indicates an attribute value is required. |
+| `name` | The name of the attribute. |
+
+  </TabItem>
+</Tabs>
+
+### Header parsing
+
+Parse a returned header by prefixing the attribute name with a hash (`#`).
+
+The syntax to retrieve the returned data type is:
+
+```text
+#Content-Type
+```
+
+| Token | Meaning |
+|-------|---------|
+| `#` | Indicates a header parsing definition. |
+| `Content-Type` | The header attribute to extract the value from. |
+
+### Text strings
+
+Some endpoints (notably VisualCron job variables) return a single text string instead of a structured payload. Use the value `TEXTSTRING` in the response variable to insert the entire returned result into the variable without parsing.
 
 ## Variables
-When working with variables, all variables must be defined as @\<***name**\> as the @ indicates to the connector that this definition is a variable meaning these values are available to the defined steps. Global variables are available to all steps while response variables are available to all subsequent steps.
 
-When working with Basic mode authentication, **@User** and **@Password** variables should be added and the **Authorization Basic** header attribute must be included in the request of each step. The connector will detect the ‘Basic’ mode and perform the required Base64 encoding of ‘@User:@Password’ string and add it to the header attribute.
+### Defining variables
 
-When working with Windows Authentication (NTLM), **@User**, **@Password** and **@Domain** variables should be added and the **Authorization NTLM**  header attribute must be included in the request of each step. The connector will detect the ‘NTLM’ mode and create the required credentials using the @User, @Password and @Domain values.
+All variables are defined as `@<name>`. The `@` prefix tells the connector that the token is a variable and should be substituted at run time. Variables can be used in URLs, request headers, and message bodies.
 
-When working with client certificates, **@CertStore**, **@CertStorePwd** and **@CertStoreType** variables should be added and the **Authorization CERT** header attribute must be included in the request of each step. The connector will detect the ‘CERT’ mode and create the required credentials extracting the certificate from the named keystore (@CertStore value).
+| Variable scope | Available to |
+|----------------|--------------|
+| Global variable | All steps in the job. |
+| Response variable | All steps after the step that defined it. |
 
-When working with SOAP Webservices the **Message-Type=SOAP** value must be included in the attribute header for each step and the Content-Type **text/xml** should be selected.
+### Authentication modes
 
-## Environment variables 
-The connector supports the retrieval of Environment Variables during start-up. During this process the connector extracts all Environment variables starting with a @ and adds them to the list of variables available for value substitution. As the Environment Variables are not passed to the agent as part of the JSON definition, they are not subject to JSON parsing. This means that normal OpCon property resolution is supported. The associated Windows or Linux agent must support this feature as the agent will register the Environment Variables associated with each job execution. 
+The connector recognizes the authentication mode from the `Authorization` header value and uses the variables you define to build credentials. The mode is set per step.
 
-## Special Variables
-The following special variables are currently defined within the connector.
+| Mode | `Authorization` header | Required variables | What the connector does |
+|------|------------------------|--------------------|-------------------------|
+| Basic | `Basic` | `@User`, `@Password` | Performs Base64 encoding of `@User:@Password` and adds it to the header. |
+| NTLM (Windows / IIS) | `NTLM` | `@User`, `@Password`, `@Domain` | Builds NTLM credentials from the variables. |
+| Token | `Token <token>` | `@Token` (typically populated from a prior step) | Passes the token value through to the target server. |
+| Certificate | `CERT` | `@CertStore`, `@CertStorePwd`, `@CertStoreType` | Loads the named keystore and authenticates with the client certificate. |
 
-Variable | Description
--------------------- | -----------
-**@User**            | Is used to define the name of the user associated with the requests. 
-**@Password**        | Is used to define the password of the user. Encrypted global properties can be used.
-**@Domain**          | Is used to define the domain associated with the user when using Windows Authentication to IIS.
-**@CertStore**       | Is used to define the location of the keystore when client certificates are used.
-**@CertStorePwd**    | Is used to define the password of the keystore. Encrypted global properties can be used.
-**@CertStoreType**   | Is used to define the format of the client key in the keystore. Currently PKCS12 is the only supported format.
-**@JCorrelationid**	 | Is used to create the unique id of a job in the daily tables that can be used during call back procedures.
-**@I_\<name\>**	     | is used to indicate to the connector that the variable is an integer value.
+:::note SOAP Webservices
+For SOAP requests, set `Message-Type=SOAP` in the request header and select Content-Type `text/xml`.
+:::
 
-### @JCorrelationid
-If there is a requirement to start a process in a web server and then allow the web server to return a completion indication, the **@JCorrellationid** value can be used. The value corresponds to the next job in the processing sequence. The job itself should have a Threshold dependency that is never triggered. The reason that the job should be held on a dependency instead of an ‘On Hold’ condition, is that any monitoring to determine if the job is ‘Late to Start’ will not valid if the job is in an ‘On Hold’ condition. The web server should respond with a /api/jobactions request using the unique jobid and setting the job status to either ‘markFinishedOk’ or ‘markFailed’ depending on the result processing in the web server.
+### Special variables
 
-The value of the @JCorrellationid ‘[[SCHEDULE DATE-YYYY-MM-DD]].[[$SCHEDULE NAME]].JOB001’ should point to a valid job in the daily. The schedule date values used is a special format consisting of YYYY-MM-DD . (a $SCHEDULE DATE property should be created to provide this value). 
+The following variable names are reserved by the connector:
 
-During the connector processing, the connector will connect to the host OpCon system using the OpCon-API and retrieve the unique job id. This value can then be passed as part of the JSON payload when starting the process on the web server.
+| Variable | Description |
+|----------|-------------|
+| `@User` | The name of the user associated with the requests. |
+| `@Password` | The password of the user. Encrypted global properties can be used. |
+| `@Domain` | The domain associated with the user when using Windows Authentication to IIS. |
+| `@CertStore` | The location of the keystore when client certificates are used. |
+| `@CertStorePwd` | The password of the keystore. Encrypted global properties can be used. |
+| `@CertStoreType` | The format of the client key in the keystore. Currently `PKCS12` is the only supported format. |
+| `@JCorrelationid` | Creates the unique ID of a job in the daily tables that can be used during call back procedures. |
+| `@I_<name>` | Indicates that the variable contains an integer value. |
 
-## @I_\<name\> Integer Variables
-The @I_ indicates that the defined variable contains an integer value. When using properties and variables within the JSON payload, the names are defined within the JSON payload as string values. When the value is substituted even if the value is an integer value it will be inserted into the JSON payload as a string value due to the place holder being a string value (i.e. “fixno” : “[[version]]” will result in “fixno” : “122”). When this is defined as an @I_ variable, the value will be inserted into the JSON payload as an integer value (i.e. “fixno” : “@I_version” will result in “fixno” : 122). 
-To implement this:
-- Create a global variable @I_verion with a value of [[version]].
-- In the JSON payload use the @I_version variable value where the [[version]] property should be inserted.
+#### @JCorrelationid
 
-## Using x-www-form-urlencoded content-type
-The x-www-form-urlencoded content-type is used when authenticating requirements use OAuth2 endpoints. When defining the data in the request body the values are entered as name=value pairs separated by an ampersand. 
+Use `@JCorrelationid` when you start a process on a web server and want the web server to signal job completion back to OpCon.
 
-Example:
+The value `@JCorrelationid` corresponds to the next job in the processing sequence. The value should follow the format:
+
+```text
+[[SCHEDULE DATE-YYYY-MM-DD]].[[$SCHEDULE NAME]].JOB001
 ```
+
+The schedule date is in `YYYY-MM-DD` format. Create a `$SCHEDULE DATE` property to provide this value.
+
+At run time, the connector calls the OpCon REST API to retrieve the unique job ID for that job and passes it in the JSON payload to the web server.
+
+When the work on the web server completes, it sends an `/api/jobactions` request back to OpCon using the unique job ID and sets the job status to either `markFinishedOk` or `markFailed`.
+
+:::caution Use a Threshold dependency, not "On Hold"
+The next job must be held on a Threshold dependency that is never triggered — not on an `On Hold` condition. "Late to Start" monitoring does not evaluate jobs that are in the `On Hold` state.
+:::
+
+#### @I_\<name\> integer variables
+
+The `@I_` prefix tells the connector to substitute the variable as an integer rather than a string.
+
+Without `@I_`, the placeholder in a JSON payload is treated as a string, so substitution preserves the surrounding quotes:
+
+```json
+"fixno" : "[[version]]"   →   "fixno" : "122"
+```
+
+With `@I_`, the connector strips the quotes during substitution:
+
+```json
+"fixno" : "@I_version"    →   "fixno" : 122
+```
+
+To use this:
+
+1. Create a global variable `@I_version` with a value of `[[version]]`.
+2. In the JSON payload, use the `@I_version` variable name where the integer should be inserted.
+
+### Environment Variables
+
+Environment Variables are an alternative variable mechanism used for values that would break JSON parsing if substituted into the OpCon job definition (most often Windows paths with unescaped backslashes).
+
+Environment Variables differ from regular variables in three ways:
+
+| Aspect | Variable | Environment Variable |
+|--------|----------|----------------------|
+| Where it lives | Inside the JSON job definition | OS environment of the agent |
+| Subject to JSON parsing | Yes | No |
+| Standard OpCon property resolution | No (raw substitution) | Yes |
+
+The connector reads all OS environment variables that begin with `@` during start-up and adds them to the list of variables available for substitution.
+
+:::note Agent must support Environment Variables
+The Windows or Linux Agent supporting the connector must support the Environment Variables feature, because the agent is responsible for setting the variables in the run environment for each job.
+:::
+
+## x-www-form-urlencoded content type
+
+The `application/x-www-form-urlencoded` content type is used when an authentication endpoint expects OAuth2-style form data. Enter the body as `name=value` pairs separated by an ampersand.
+
+```text
 grant_type=client_credentials&client_id=@Clientid&client_secret=@Key&resource=https://management.azure.com/
 ```
+
 ## Templates
-Templates can be used to import task definitions when creating the tasks. The templates can be used either for Windows or Linux tasks. Templates for job definitions can be found in the SMA Technologies Innovation Lab on GitHub. Projects have been assigned names associating themselves with templates (i.e. \<***name***\>-webservicestemplate).
 
-## Proxy Servers
-The connector supports the use of proxy servers. When requiring a proxy server, it is possible to configure this in two possible ways. If a proxy server definition exists in both the configuration and the Step definition, the value in the Step definition will be used.
+Templates are reusable JSON job definitions that can be imported into the **Web Services** job sub-type. Additional templates are published in the SMA Technologies Innovation Lab on GitHub under projects named *name*`-webservicestemplate`.
 
-### All jobs using Proxy Server
-If all jobs associated with the connector require a proxy server, then the proxy server can be configured in the Connector.config. See the SMAWSConnector Configuration section for more information.
+For ready-to-import examples, see the [Templates](./templates.md) page.
 
-```
+## Proxy servers
+
+### Proxy modes
+
+The connector supports two ways of specifying a proxy server. If both are configured, the step-level value wins.
+
+| Scope | Where to configure | Use when |
+|-------|-------------------|----------|
+| All jobs | `[PROXY]` section of `Connector.config` | Every job through this connector requires the same proxy. |
+| Single step | **Proxy Server** field of the **Step** definition | You need multiple proxies, or a mix of proxied and direct jobs. |
+
+### All jobs through one proxy
+
+Set `USES_PROXY=True` and the proxy URL in `Connector.config`. See the [Connector.config file](./installation.md#connectorconfig-file) section in Installation for full details.
+
+```ini
 [GENERAL]
 DATA_DIRECTORY=c:\\connectors\\wsrest\\data
 USES_PROXY=True
@@ -191,67 +364,149 @@ USESTLS=True
 TOKEN=e4185480-7137-4bca-8220-0dccc555a946
 ```
 
-### Specific Steps within a Job using a Proxy Server
-This approach allows a proxy server to be associated with a specific step within a job, by entering the proxy server information in the **Proxy Server** field of the **Step** definition. If there is a requirement to support multiple proxy servers or a mixture of proxy server jobs and non-proxy server jobs, use this option. 
+### Per-step proxy
 
-## Client Certificates
-When using client certificates, the certificate needs to be inserted into a keystore that is then associated with the connector. The suggestion is to create a store directory off the connector root installation directory and create a unique keystore for each certificate.
+Enter the full proxy server URL in the **Proxy Server** field on the **Step** definition. A step-level value overrides the value in `Connector.config`.
 
-When creating the keystore, download the client key \<***keyname***\>.p12 and use the Java program keytools (location in the \java\bin directory) to create the keystore. When you receive a client key, you will also receive a password that will allow you to execute a request on the received key. To create the keystore for a received client key test_client.p12 enter the following:
+## Client certificates
 
-```
-keytool -importkeystore -srckeystore c:\wsconnector\store\test-client.p12 -destkeystore c:\wsconnector\store\test.pkcs12 -srcstoretype pkcs12
-where:  -importkeystore     indicates create the keystore
-        -srckeystore        the received certificate (format p12)
-        -destkeystore       the name of the keystore to create inserting the received Certificate into the keystore
-        -srcstoretype       the format of the received key (only pkcs12 supported)
-```
-During the process, you will be asked to create a password for keystore as well as enter the password you received with the certificate file. The -destkeystore value should be set in the **@CertStore** variable and the keystore password you entered when creating the keystore should be set in the **@CertStorePwd** variable.  
+When using client certificates, you create a keystore that holds the certificate and reference it from the connector through variables.
 
-### WebServices Jobs as Embedded Scripts
-It is possible to define WebServices jobs using Embedded Scripts. The templates section includes two definitions (WebServices-vcron-vars and WebServices-vcron-no-vars) that can be used to execute VisualCron jobs passing the unique job definitions as Environment Variables.
-When defining WebServices jobs as Embedded Script jobs, the Working Dir value must point to the WebServices installation directory.
+### Create a keystore
 
-Script Name                | Description
--------------------------- | -------------------------------------------------------------------------------
-WebServices-vcron-vars     | includes variable definitions that are passed to the VisualCron job as VisualCron Job variables.
-Webservices-vcron-no-vars  | no variables are passed to the VisualCron job.
+To create a keystore for a received client key, complete the following steps:
 
-The following Environment Variables should be set for each execution request:
+1. Create a `store` directory off the connector root installation directory.
+2. Place the received client key file (*keyname*`.p12`) in the `store` directory.
+3. Run `keytool` (located in the `\java\bin` directory of the connector installation) to create the keystore:
 
-Environment Variable | Description
--------------------- | -------------------------------------------------------------------------------
-@Url                 | the url used to connect to the VisualCron Rest-API (localhost:8001).
-@User                | the VisualCron user that will be used to execute the VisualCron job.
-@Password            | the password of the VisualCron user.
-@Jobname             | the name of the VisualCron job.
-@Variables           | optional. required for WebServices-vcron-vars script and consists of the VisualCron job variable name and the value. Multiple variables are separated using the pipe (\|) character (varName1=value\|varName2=value).
+   ```bash
+   keytool -importkeystore \
+     -srckeystore c:\wsconnector\store\test-client.p12 \
+     -destkeystore c:\wsconnector\store\test.pkcs12 \
+     -srcstoretype pkcs12
+   ```
 
-### Installing WebServices Connector as an Embedded Script
-To install the WebServices connector as an embedded script requires the definition of a script type, a script runner type and the two supplied scripts WebServices-vcron-vars and WebServices-vcron-no-vars.
+4. When prompted, enter a new password for the keystore and the password supplied with the client key file.
 
-#### Script Type
-Select **Scripts.Types** and select the **Add** icon.
-for **Name** enter **WebServices**
-for **File Extension** enter **.web**
-for **Description** enter **Running WebServices as an embedded script**
+| Argument | Description |
+|----------|-------------|
+| `-importkeystore` | Creates the keystore. |
+| `-srckeystore` | Path to the received certificate (`p12` format). |
+| `-destkeystore` | Path of the keystore to create. The certificate is inserted into this keystore. |
+| `-srcstoretype` | Format of the received key. |
 
-#### Script Runner
-Select **Scripts.Runners** and select the **Add** icon.
-for **OS** select **Windows**
-for **Type of Script** enter **WebServices**
-for **Command Template** enter **install-dir\SMAWSCOnnector.exe $FILE $ARGUMENTS**
+:::caution Only PKCS12 is supported
+Set `@CertStoreType` to `PKCS12`. The connector does not support other keystore formats.
+:::
 
-#### Install supplied scripts
-Select **Scripts.Repository** and select the **Add** icon.
-for **Name** enter **WebServices-vcron-vars**
-for **Description** enter **WebServices script to call VisualCron passing variables**
-for **Script** paste the WebServices-vcron-vars definition from the templates section
-for **Type** select **WebServices**
+### Map the keystore to variables
 
-Select **Scripts.Repository** and select the **Add** icon.
-for **Name** enter **WebServices-vcron-no-vars**
-for **Description** enter **WebServices script to call VisualCron without variables**
-for **Script** paste the WebServices-vcron-no-vars definition from the templates section
-for **Type** select **WebServices**
+After the keystore is created, set these variables in the job definition:
 
+| Variable | Value |
+|----------|-------|
+| `@CertStore` | Full path to the keystore (the `-destkeystore` value, for example, `c:\wsconnector\store\test.pkcs12`). |
+| `@CertStorePwd` | The password you set when creating the keystore. |
+| `@CertStoreType` | `PKCS12` |
+
+## Webservices jobs as Embedded Scripts
+
+You can define Webservices jobs using OpCon Embedded Scripts. The connector ships with two Embedded Script definitions for running VisualCron jobs.
+
+:::note Working Dir
+When defining Webservices jobs as Embedded Script jobs, the **Working Dir** value must point to the Webservices installation directory.
+:::
+
+### Supplied scripts
+
+| Script name | Description |
+|-------------|-------------|
+| `WebServices-vcron-vars` | Includes variable definitions that are passed to the VisualCron job as VisualCron job variables. |
+| `WebServices-vcron-no-vars` | No variables are passed to the VisualCron job. |
+
+### Required Environment Variables
+
+Set the following Environment Variables for each run request:
+
+| Environment Variable | Description |
+|----------------------|-------------|
+| `@Url` | The URL used to connect to the VisualCron REST API (`localhost:8001`). |
+| `@User` | The VisualCron user that will be used to run the VisualCron job. |
+| `@Password` | The password of the VisualCron user. |
+| `@Jobname` | The name of the VisualCron job. |
+| `@Variables` | Optional. Required for the `WebServices-vcron-vars` script. Consists of the VisualCron job variable name and the value. Multiple variables are separated by the pipe character (`varName1=value\|varName2=value`). |
+
+### Install the connector as an Embedded Script
+
+To install the Webservices Connector as an Embedded Script, complete the three procedures below in order.
+
+#### 1. Define the script type
+
+1. Go to **Scripts > Types** and select the **Add** button.
+2. Set the following values:
+
+   | Field | Value |
+   |-------|-------|
+   | **Name** | `WebServices` |
+   | **File Extension** | `.web` |
+   | **Description** | `Running WebServices as an embedded script` |
+
+#### 2. Define the script runner
+
+1. Go to **Scripts > Runners** and select the **Add** button.
+2. Set the following values:
+
+   | Field | Value |
+   |-------|-------|
+   | **OS** | `Windows` |
+   | **Type of Script** | `WebServices` |
+   | **Command Template** | `install-dir\SMAWSConnector.exe $FILE $ARGUMENTS` |
+
+#### 3. Install the supplied scripts
+
+To install both supplied scripts, complete the following steps once for each script:
+
+1. Go to **Scripts > Repository** and select the **Add** button.
+2. Set the values from the table below for the script you are installing.
+3. Paste the corresponding script body from the templates section into the **Script** field.
+
+| Field | First script | Second script |
+|-------|--------------|---------------|
+| **Name** | `WebServices-vcron-vars` | `WebServices-vcron-no-vars` |
+| **Description** | `WebServices script to call VisualCron passing variables` | `WebServices script to call VisualCron without variables` |
+| **Type** | `WebServices` | `WebServices` |
+
+## FAQs
+
+**Which content types can the connector parse for response data?**
+Response parsing is supported for `application/json` using JSONPath and `application/xml` using XPath. Headers can be parsed using a hash-prefixed syntax (`#Content-Type`). VisualCron text-string responses can be captured with `TEXTSTRING`.
+
+**How does the connector recognize a variable?**
+Names that begin with `@` are treated as variables and substituted into URLs, headers, and message bodies at run time. Variables prefixed with `@I_` are substituted as integer values rather than strings.
+
+**When should I use Environment Variables instead of Variables?**
+Use Environment Variables when an OpCon property value contains characters (such as backslashes in Windows paths) that would break JSON parsing if substituted into the job definition. Environment Variables are passed through the agent rather than through the JSON definition.
+
+**How does the connector handle authentication?**
+Authentication mode is determined by the `Authorization` header value: `Basic` for Base64-encoded `@User:@Password`, `NTLM` for Windows Authentication using `@User`, `@Password`, and `@Domain`, `Token` for token-based authentication, and `CERT` for client certificate authentication.
+
+**What is `@JCorrelationid` used for?**
+`@JCorrelationid` retrieves the unique job ID of the next job in the daily so an external web server can return a completion status to OpCon using the REST API `/api/jobactions` endpoint.
+
+**Where can I configure a proxy server?**
+Either globally in the `[PROXY]` section of `Connector.config`, or per step in the **Proxy Server** field of the **Step** definition. A step-level value overrides the global value.
+
+## Glossary
+
+| Term | Definition |
+|------|------------|
+| JSONPath | A query syntax used to identify and extract values from JSON data. The Webservices Connector uses JSONPath for `application/json` responses. |
+| XPath | A query syntax used to identify and navigate nodes in an XML document. The Webservices Connector uses XPath for `application/xml` responses. |
+| Header parsing | A connector feature that extracts a value from a response header using `#`-prefixed syntax (for example, `#Content-Type`). |
+| Variable | A named value, prefixed with `@`, that the connector substitutes into URLs, headers, or message bodies at run time. |
+| Environment Variable | A variable, prefixed with `@`, passed to the agent through the OS environment rather than through the JSON job definition. |
+| Special variable | A reserved variable name (`@User`, `@Password`, `@Domain`, `@JCorrelationid`, `@CertStore`, `@CertStorePwd`, `@CertStoreType`) recognized by the connector for credentials, correlation, or certificate handling. |
+| Integer variable | A variable prefixed with `@I_` whose value is substituted into the JSON payload as an integer rather than a string. |
+| Keystore | A file (PKCS12 format) that holds a client certificate and is referenced by the `@CertStore` variable. |
+| Embedded Script | A method of defining Webservices Connector jobs as scripts run by an agent. |
