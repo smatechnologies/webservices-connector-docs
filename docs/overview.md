@@ -1,7 +1,7 @@
 ---
 sidebar_label: 'Webservices Connector'
 title: Webservices Connector overview
-description: "Overview of the OpCon Webservices Connector, a REST-API connector that supports multi-step requests against web servers using GET, POST, PUT, and DELETE."
+description: "Overview of the OpCon Webservices Connector, a REST-API connector that supports multi-step requests against web servers using GET, POST, PUT, PATCH, and DELETE."
 tags:
   - Conceptual
   - System Administrator
@@ -13,11 +13,11 @@ tags:
 
 ## What is it?
 
-The Webservices Connector is a REST-API connector that supports a multi-step capability. Each step is a separate request to a web server using the GET, POST, PUT or DELETE functions. Steps run in sequence with the possibility of extracting data from the returned payload and passing this to subsequent steps.
+The Webservices Connector is a REST-API connector that supports a multi-step capability. Each step is a separate request to a web server using the GET, POST, PUT, PATCH or DELETE functions. Steps run in sequence with the possibility of extracting data from the returned payload and passing this to subsequent steps.
 
 ![Webservices Component Overview](../static/img/webservices-component-overview.png)
 
-The connector supports application/json, application/xml, application/x-www-form-urlencoded, multipart/form-data, text/xml and text/plain Content-Types. However, only application/json and application/xml Content-Types support attribute value extraction using the JSONPath capabilities for JSON data and XPath capabilities for XML data.
+The connector supports application/json, application/json-patch+json, application/xml, application/x-www-form-urlencoded, application/octet-stream, multipart/form-data, text/xml and text/plain Content-Types. However, only application/json and application/xml Content-Types support attribute value extraction using the JSONPath capabilities for JSON data and XPath capabilities for XML data.
 
 The connector supports the capability to submit requests to SOAP Webservices by submitting a POST request and encapsulating the SOAP XML definition in the message body.
 
@@ -75,6 +75,6 @@ Yes. A proxy server can be configured globally in `Connector.config` for all job
 | Environment Variable | A variable, prefixed with `@`, passed to the agent through the OS environment rather than through the JSON job definition. Used when values would otherwise break JSON parsing. |
 | Response Variable | A variable populated from the returned payload of a step using JSONPath, XPath, or header parsing, for use by subsequent steps. |
 | Special Variable | A reserved variable name (`@User`, `@Password`, `@Domain`, `@JCorrelationid`, `@CertStore`, `@CertStorePwd`, `@CertStoreType`) that the connector recognizes for credentials, correlation, or certificate handling. |
-| @JCorrelationid | A reserved variable used to retrieve the unique job ID of the next job in the daily so that an external system can return a completion status through the OpCon REST API. |
+| @JCorrelationid | A reserved variable whose value names a job in the daily. The connector resolves that name to the job's unique ID so an external system can return a completion status through the OpCon REST API. In the usual pattern the job named is the next one in the sequence. |
 | Connector.config | The configuration file that defines the data directory, proxy settings, and OpCon REST API connection details used by the connector. |
 | Web Services job sub-type | The Enterprise Manager job sub-type, installed by the connector plug-in, used to define Webservices Connector jobs. |

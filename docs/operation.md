@@ -24,14 +24,24 @@ The connector is content-type aware and works generically with all JSON and XML 
 | Content-Type | Direction | Notes |
 |--------------|-----------|-------|
 | `application/json` | Request and response | Supports JSONPath response parsing. |
+| `application/json-patch+json` | Request | Used by PATCH requests. |
 | `application/xml` | Request and response | Supports XPath response parsing. |
 | `text/xml` | Request and response | Required for SOAP Webservices. |
 | `application/x-www-form-urlencoded` | Request | Used for OAuth2 endpoints. |
-| `multipart/form-data` | Request | Used for file uploads. |
+| `multipart/form-data` | Request | Used for file uploads that also pass form fields. |
+| `application/octet-stream` | Request | Used for binary file uploads, where the file is the whole body. |
 | `text/plain` | Request and response | No structured parsing. |
 
 :::tip Use Debug mode while building jobs
-Set `DEBUG=True` in `Connector.config` while you are defining steps. Debug mode dumps the data received from the web server to the job output so you can determine the JSONPath, XPath, or header parsing syntax to use.
+Set `DEBUG=True` in `Connector.config` while you are defining steps. Debug mode adds the connector's own parsing detail to the job output, so you can see how it resolved variables and work out the JSONPath, XPath, or header parsing syntax to use.
+:::
+
+:::caution Job output contains the request and response, including credentials
+The connector writes the full request and response for every step to the job output — headers and body — on every run, whether or not `DEBUG` is set. That includes the `Authorization` header, so the job output of an authenticated step contains the Base64 of `@User:@Password` for Basic authentication, or the bearer token for Token authentication, and any secret sent in a request body.
+
+Treat the job output of Webservices Connector jobs as you would treat a credential: restrict who can view the daily, and do not paste job output into a ticket or an email without removing the `Authorization` header first.
+
+The connector does mask values it recognizes as passwords in its own diagnostic messages, but that masking does not cover the request and response records described here.
 :::
 
 ## Response parsing
@@ -257,21 +267,25 @@ The following variable names are reserved by the connector:
 | `@Domain` | The domain associated with the user when using Windows Authentication to IIS. |
 | `@CertStore` | The location of the keystore when client certificates are used. |
 | `@CertStorePwd` | The password of the keystore. Encrypted global properties can be used. |
-| `@CertStoreType` | The format of the client key in the keystore. Currently `PKCS12` is the only supported format. |
-| `@JCorrelationid` | Creates the unique ID of a job in the daily tables that can be used during call back procedures. |
+| `@CertStoreType` | The keystore type, passed to the Java runtime as given. `PKCS12` and `JKS` are the types in normal use. |
+| `@JCorrelationid` | Resolves the name of a job in the daily to that job's unique ID, for use in call back procedures. |
 | `@I_<name>` | Indicates that the variable contains an integer value. |
 
 #### @JCorrelationid
 
 Use `@JCorrelationid` when you start a process on a web server and want the web server to signal job completion back to OpCon.
 
-The value `@JCorrelationid` corresponds to the next job in the processing sequence. The value should follow the format:
+Set the value of `@JCorrelationid` to the name of the job whose completion the web server will report. In the usual pattern that is the next job in the processing sequence. The value should follow the format:
 
 ```text
 [[SCHEDULE DATE-YYYY-MM-DD]].[[$SCHEDULE NAME]].JOB001
 ```
 
 The schedule date is in `YYYY-MM-DD` format. Create a `$SCHEDULE DATE` property to provide this value.
+
+:::note
+Job identifiers of this kind contain pipe characters once resolved. The connector encodes pipes and spaces in the URL before sending the request, so the value can be used as-is.
+:::
 
 At run time, the connector calls the OpCon REST API to retrieve the unique job ID for that job and passes it in the JSON payload to the web server.
 
@@ -315,6 +329,11 @@ Environment Variables differ from regular variables in three ways:
 | Standard OpCon property resolution | No (raw substitution) | Yes |
 
 The connector reads all OS environment variables that begin with `@` during start-up and adds them to the list of variables available for substitution.
+
+Two behaviors are worth knowing before you move a value from one mechanism to the other:
+
+- **A variable defined in the job definition wins.** An environment variable is only added if no variable of that name is already defined, so leaving the old definition in place means the environment variable is ignored.
+- **Backslashes are escaped for you.** The connector doubles any backslash in an environment variable value, so enter the path unescaped.
 
 :::note Agent must support Environment Variables
 The Windows or Linux Agent supporting the connector must support the Environment Variables feature, because the agent is responsible for setting the variables in the run environment for each job.

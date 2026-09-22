@@ -33,7 +33,7 @@ For a reference to all the fields shown in these examples, see [Defining jobs](.
 | 8 | [Client certificate authentication](#8-client-certificate-authentication) | Authenticate using a PKCS12 keystore. |
 | 9 | [File upload](#9-file-upload) | Upload a file using `multipart/form-data`. |
 | 10 | [SOAP Webservices](#10-soap-webservices) | Submit a SOAP envelope and extract a value from the response. |
-| 11 | [Start and monitor a VisualCron job (RPA)](#11-start-and-monitor-a-visualcron-job-rpa) | Use the VisualCron REST API to launch and track a VisualCron job. |
+| 11 | [Start and monitor a VisualCron job (RPA)](#11-start-and-monitor-a-visualcron-job-rpa) | Use the VisualCron REST API to start and track a VisualCron job. |
 
 :::tip Reading these examples
 Each step in an example shows only the fields you need to set. Fields not shown — such as **Proxy Server** and **TLS** — keep their defaults. The connector uses TLS automatically when the URL begins with `https`.
@@ -566,7 +566,7 @@ Use Webservices variables to define the URL, user, password, and job name so the
 |----------|---------|
 | `@Url` | VisualCron REST API host. |
 | `@User`, `@Password` | VisualCron credentials used to authenticate. |
-| `@Jobname` | Name of the VisualCron job to launch. |
+| `@Jobname` | Name of the VisualCron job to start. |
 | `@Variables` | Optional. VisualCron job variable values, formatted as `varName1=value\|varName2=value`. |
 
 ### Step sequence

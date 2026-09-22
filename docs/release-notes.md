@@ -16,6 +16,10 @@ This version of the connector requires OpCon version STS 20.7 or LTS 21.0 or gre
 
 ## 21
 
+:::note
+This history begins at 21.2. Release details for 21.0 and 21.1 are not recorded here.
+:::
+
 ### 21.7
 
 #### Fixes
@@ -39,7 +43,7 @@ This version of the connector requires OpCon version STS 20.7 or LTS 21.0 or gre
 
 :eight_spoked_asterisk: **CON-9** and **CON-384**: Add TLS definition to each step. Requires updating both sub-type and connector. TLS value set to TLS by default to ensure backwards compatibility.
 
-:eight_spoked_asterisk: **CON-622**: Updated multipart/form-body to correctly pass variables defined in the form-data during file upload.
+:eight_spoked_asterisk: **CON-622**: Updated multipart/form-data to correctly pass variables defined in the form-data during file upload.
 
 :eight_spoked_asterisk: **CON-802**: Corrected a problem during GET poll loop when the step completes correctly, but then returns a 0 resulting in the task terminating in an error condition.
 
@@ -67,7 +71,7 @@ To implement the application/octet-stream media type selection correction and ap
 
 :eight_spoked_asterisk: **CONNUTIL-626**: Removed extra CR+LF at end of received file.
 
-:eight_spoked_asterisk: **CONNUTIL-647**: Corrected typo in application/octet-stream in subtype drop-down list.
+:eight_spoked_asterisk: **CONNUTIL-647**: Corrected typo in application/octet-stream in the sub-type list.
 
 :eight_spoked_asterisk: **CONNUTIL-651**: Corrected octet streaming file upload for POST and PUT functions. Added header logging. Corrected POST function using application/json-patch+json media type. Adjusted multi-part file upload. Updated software libraries.
 
