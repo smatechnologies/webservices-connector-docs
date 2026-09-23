@@ -184,8 +184,8 @@ Each step has the following top-level fields:
 
 | Field | Description |
 |-------|-------------|
-| **Function** | The HTTP function: `GET`, `POST`, `PUT`, or `DELETE`. |
-| **URL** | The full URL of the web server request, including `http` or `https`, address, and port. The connector uses TLS automatically when the URL contains `https`. |
+| **Function** | The HTTP function: `GET`, `POST`, `PUT`, `PATCH`, or `DELETE`. PATCH requests use the `application/json-patch+json` Content-Type. |
+| **URL** | The full URL of the web server request, including `http` or `https`, address, and port. The connector uses TLS automatically when the URL contains `https`. Pipe characters and spaces in the URL are encoded for you, so an identifier containing pipes can be entered as-is. |
 | **Proxy Server** | Optional. Full proxy URL to use for this step. Overrides the `Connector.config` proxy if both are set. |
 | **TLS** | TLS version: `TLS` (default), `TLSv1.0`, `TLSv1.1`, `TLSv1.2`, or `TLSv1.3`. |
 

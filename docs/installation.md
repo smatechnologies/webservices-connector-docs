@@ -248,7 +248,7 @@ The file is divided into three sections — `[GENERAL]`, `[PROXY]`, and `[OPCON_
 | `DATA_DIRECTORY` | A default data directory used by the connector for storing created templates. On Windows, escape backslashes (`\\`). | — |
 | `USES_PROXY` | Indicates whether the connector uses a proxy server. | `False` |
 | `UPDATE_PROPERTIES_ON_FAILURE` | Indicates whether the connector should update OpCon properties when a task fails. | `False` |
-| `DEBUG` | Turns debug output on or off. Set to `True` while defining steps to dump returned data so you can locate attribute values to extract. | `False` |
+| `DEBUG` | Turns the connector's diagnostic output on or off. Set to `True` while defining steps to see how it resolved variables and locate attribute values to extract. Job output contains the request and response either way — refer to [Operation](operation.md#how-requests-and-responses-work). | `False` |
 
 #### [PROXY] section
 
@@ -265,10 +265,12 @@ Defines the connection to the OpCon REST API. The values in this section are pop
 | Property | Description |
 |----------|-------------|
 | `SERVER` | The address of the host OpCon server. |
-| `USETLS` | Indicates whether the OpCon REST API server uses TLS. |
+| `USESTLS` | Indicates whether the OpCon REST API server uses TLS. |
 | `TOKEN` | The application-level token. The `--setup` switch creates a `CONNECTORS` application token and writes it here. |
 
 #### Example Connector.config
+
+The `[OPCON_API]` values below are placeholders. The `--setup` switch writes the real server address and token for you — refer to [OpCon REST API setup](#opcon-rest-api-setup).
 
 ```ini
 [GENERAL]
@@ -281,9 +283,9 @@ DEBUG=False
 URL=
 
 [OPCON_API]
-SERVER=BVHTEST02:9010
+SERVER=opcon-server:9010
 USESTLS=True
-TOKEN=e4185480-7137-4bca-8220-0dccc555a946
+TOKEN=00000000-0000-0000-0000-000000000000
 ```
 
 ### OpCon REST API setup

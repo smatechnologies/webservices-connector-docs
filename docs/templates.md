@@ -41,7 +41,7 @@ For walk-through examples that explain each step's behavior, see [Example job de
 | 4 | [GET with Basic authentication](#4-get-with-basic-authentication) | `EASYVISTA` | Send an authenticated GET request using HTTP Basic auth. |
 | 5 | [GET with Windows Authentication (NTLM)](#5-get-with-windows-authentication-ntlm) | *(none)* | Send an authenticated GET request to an IIS endpoint. |
 | 6 | [GET with client certificate](#6-get-with-client-certificate) | `certifcate` | Send a GET request authenticated with a PKCS12 client certificate. |
-| 7 | [VisualCron Embedded Script (vars / no-vars)](#7-visualcron-embedded-script-definitions) | *(none)* | Launch and monitor a VisualCron job, with or without passing job variables. |
+| 7 | [VisualCron Embedded Script (vars / no-vars)](#7-visualcron-embedded-script-definitions) | *(none)* | Start and monitor a VisualCron job, with or without passing job variables. |
 | 8 | [Kubernetes deployment (OpCon + Deploy + Webservices)](#8-kubernetes-deployment-opcon--deploy--webservices) | — | Deploy OpCon, Deploy (Impex2), and the Webservices Connector to a Kubernetes cluster. |
 
 :::tip Free-form template ID
@@ -520,7 +520,7 @@ For instructions on creating the keystore from a `.p12` client key, see [Operati
 ``` 
 ## 7. VisualCron Embedded Script definitions
 
-These templates are used when defining Webservices Connector jobs as **OpCon Embedded Scripts** that launch and monitor VisualCron jobs through the VisualCron REST API. Both definitions follow the same five-step sequence: authenticate, look up the job ID, run the job, poll status, and read the exit code.
+These templates are used when defining Webservices Connector jobs as **OpCon Embedded Scripts** that start and monitor VisualCron jobs through the VisualCron REST API. Both definitions follow the same five-step sequence: authenticate, look up the job ID, run the job, poll status, and read the exit code.
 
 For background, see [Operation > Webservices jobs as Embedded Scripts](./operation.md#webservices-jobs-as-embedded-scripts) and [Example 11 — VisualCron RPA](./example-job-definitions.md#11-start-and-monitor-a-visualcron-job-rpa).
 
@@ -533,7 +533,7 @@ For background, see [Operation > Webservices jobs as Embedded Scripts](./operati
 | `@Url` | VisualCron REST API host (for example, `localhost:8001`). |
 | `@User` | VisualCron user. |
 | `@Password` | VisualCron password. |
-| `@Jobname` | Name of the VisualCron job to launch. |
+| `@Jobname` | Name of the VisualCron job to start. |
 | `@Variables` | (vars template only) VisualCron job variable values, formatted as `varName1=value\|varName2=value`. |
 
 Choose the variant that matches your need:
@@ -541,7 +541,7 @@ Choose the variant that matches your need:
 <Tabs groupId="vcron-template" queryString>
   <TabItem value="vars" label="WebServices-vcron-vars (with variables)" default>
 
-Passes VisualCron job variable values as part of the launch request via the `variables=@Variables` query string.
+Passes VisualCron job variable values as part of the run request via the `variables=@Variables` query string.
 
 ```json
 {
@@ -672,7 +672,7 @@ Passes VisualCron job variable values as part of the launch request via the `var
   </TabItem>
   <TabItem value="no-vars" label="WebServices-vcron-no-vars (no variables)">
 
-Launches the VisualCron job without passing any job variables.
+Starts the VisualCron job without passing any job variables.
 
 ```json
 {
