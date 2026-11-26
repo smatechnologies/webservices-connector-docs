@@ -20,7 +20,8 @@ This version of the connector requires OpCon version STS 20.7 or LTS 21.0 or gre
 
 #### Fixes
 
-:eight_spoked_asterisk: **CON-2409**: Remediates GHSA-r7wm-3cxj-wff9 (jackson-core async parser maxNumberLength bypass), fixed upstream in 2.18.8. 2.18.9 is the fleet-wide jackson target.
+:eight_spoked_asterisk: **CON-2409**: Remediates GHSA-r7wm-3cxj-wff9 (jackson-core async parser maxNumberLength bypass), fixed upstream in 2.18.8. 2.18.9 is the fleet-wide jackson target.  
+
 :eight_spoked_asterisk: **CON-2875**: Fix certificate client argument order and stop keystore password leaking to the job log.
 
 ## 21
